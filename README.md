@@ -1,0 +1,1 @@
+A really quick and dirty object mapper using .NET reflection.
