@@ -15,6 +15,17 @@ namespace mab.lib.SimpleMapper
             return Map<TSource, TDestination>(source, destination);
         }
 
+        public static TDestination Map<TSource, TDestination>(TSource source, params object[] args)
+        {
+            if(source == null)
+            {
+                return default(TDestination);
+            }
+
+            var destination = (TDestination)Activator.CreateInstance(typeof(TDestination), args);
+            return Map<TSource, TDestination>(source, destination);
+        }
+
         public static TDestination Map<TSource, TDestination>(TSource source, TDestination destination)
         {
             if (source == null) return default(TDestination);
@@ -71,7 +82,24 @@ namespace mab.lib.SimpleMapper
             var destination = new List<TDestination>();
 
             foreach (var item in source)
-                destination.Add(Mapper.Map<TSource, TDestination>(item));
+                destination.Add(Map<TSource, TDestination>(item));
+
+            return destination;
+        }
+
+        public static List<TDestination> MapList<TSource, TDestination>(List<TSource> source, params object[] args)
+        {
+            if(source == null)
+            {
+                return default(List<TDestination>);
+            }
+
+            var destination = new List<TDestination>();
+
+            foreach(var item in source)
+            {
+                destination.Add(Map<TSource, TDestination>(item, args));
+            }
 
             return destination;
         }
