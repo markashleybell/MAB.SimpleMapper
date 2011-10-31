@@ -4,19 +4,29 @@ using System.Linq;
 using System.Text;
 
 namespace  mab.lib.SimpleMapper.Test {
-    public class Model {
+    public class Model
+    {
+        public int _int;
+        public string _string;
+
+        public Model()
+        {
+        }
+
+        public Model(int intParam, string stringParam)
+        {
+            _int = intParam;
+            _string = stringParam;
+        }
 
         public int ID { get; set; }
         public string Title { get; set; }
         public string Body { get; set; }
+        public string Other { get; set; }
         public bool Publish { get; set; }
+        public bool? BoolNullable { get; set; }
 
-        public decimal Total 
-        { 
-            get {
-                return 100;
-            } 
-        }
+        public decimal Total { get; set; }
 
         public DateTime Date { get; set; }
 
@@ -29,6 +39,5 @@ namespace  mab.lib.SimpleMapper.Test {
         public List<string> Tags { get; set; }
 
         public List<Entity> Children { get; set; }
-
     }
 }

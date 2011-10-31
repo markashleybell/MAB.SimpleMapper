@@ -4,12 +4,14 @@ using System.Linq;
 using System.Text;
 
 namespace  mab.lib.SimpleMapper.Test {
-    public class Entity {
-
+    public class Entity
+    {
         public int ID { get; set; }
         public string Title { get; set; }
         public string Body { get; set; }
+        public string Other { get; set; }
         public bool Publish { get; set; }
+        public bool? BoolNullable { get; set; }
 
         public decimal Total { get; set; }
 
