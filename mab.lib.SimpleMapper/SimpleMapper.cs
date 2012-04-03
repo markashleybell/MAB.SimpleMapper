@@ -108,18 +108,17 @@ namespace mab.lib.SimpleMapper
 
         public static void CopyProperties<TSource, TDestination>(TSource source, TDestination destination)
         {
-            // By default we don't want to map any property ending with "ID" (leave this to EF)
-            CopyProperties<TSource, TDestination>(source, destination, new List<string> { "^.*ID$" }, null, new List<string> { });
+            CopyProperties<TSource, TDestination>(source, destination, new List<string>(), null, new List<string>());
         }
 
         public static void CopyProperties<TSource, TDestination>(TSource source, TDestination destination, List<string> excludes)
         {
-            CopyProperties<TSource, TDestination>(source, destination, excludes, null, new List<string> { });
+            CopyProperties<TSource, TDestination>(source, destination, excludes, null, new List<string>());   
         }
 
         public static void CopyProperties<TSource, TDestination>(TSource source, TDestination destination, List<string> excludes, Func<object, object> processingFunction)
         {
-            CopyProperties<TSource, TDestination>(source, destination, excludes, processingFunction, new List<string> { });
+            CopyProperties<TSource, TDestination>(source, destination, excludes, processingFunction, new List<string>());
         }
 
         public static void CopyProperties<TSource, TDestination>(TSource source, TDestination destination, List<string> excludes, Func<object, object> processingFunction, List<string> processingExcludes)
