@@ -252,6 +252,15 @@ namespace  mab.lib.SimpleMapper.Test {
             model.Total.ShouldEqual(12.00M);
             model.Other.ShouldEqual("TEST");
         }
+
+        [Test]
+        public void Map_List_With_MapToListExtension()
+        {
+            var models = _entities.MapToList<Model>();
+
+            models[0].Title.ShouldEqual("Test Child 1");
+            models[1].Title.ShouldEqual("Test Child 2");
+        }
     }
 
 }
