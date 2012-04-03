@@ -181,7 +181,7 @@ namespace  mab.lib.SimpleMapper.Test {
 
             Mapper.CopyProperties<Model, Entity>(model, entity);
 
-            entity.ID.ShouldEqual(1);
+            entity.ID.ShouldEqual(7);
             entity.Title.ShouldEqual("Test Model");
             entity.Body.ShouldEqual("This should be the new Body");
         }
@@ -227,6 +227,30 @@ namespace  mab.lib.SimpleMapper.Test {
             entity.Title.ShouldEqual("Test Model");
             entity.Body.ShouldEqual("This Should BE The New Body");
             entity.Other.ShouldEqual("this should stay lower case");
+        }
+
+        [Test]
+        public void Map_Object_With_MapToExtension()
+        {
+            var entity = new Entity {
+                ID = 1,
+                Title = "test title",
+                Body = "this is the body text",
+                Other = "TEST",
+                Publish = true,
+                Date = new DateTime(2011, 7, 5),
+                DateNullable = new DateTime(2012, 8, 10),
+                Total = 12.00M,
+                DecimalNullable = 55.25M,
+                BoolNullable = false,
+                IntNullable = 5
+            };
+
+            var model = entity.MapTo<Model>();
+
+            model.Title.ShouldEqual("test title");
+            model.Total.ShouldEqual(12.00M);
+            model.Other.ShouldEqual("TEST");
         }
     }
 
