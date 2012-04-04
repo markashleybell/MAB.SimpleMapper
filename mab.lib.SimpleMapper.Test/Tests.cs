@@ -12,8 +12,7 @@ namespace  mab.lib.SimpleMapper.Test {
     {
         #region Entities
 
-        private Entity _entity = new Entity
-        {
+        private Entity _entity = new Entity {
             ID = 1,
             Title = "Test Title",
             Body = "This is the body text",
@@ -187,6 +186,35 @@ namespace  mab.lib.SimpleMapper.Test {
         }
 
         [Test]
+        public void Copy_Properties_From_One_Object_To_Another_Excluding_By_Regex()
+        {
+            var entity = new Entity {
+                ID = 1,
+                Title = "Test Title",
+                Body = "This is the body text",
+                Publish = true,
+                Date = new DateTime(2011, 7, 5),
+                DateNullable = new DateTime(2012, 8, 10),
+                Total = 12.00M,
+                DecimalNullable = 55.25M,
+                BoolNullable = false,
+                IntNullable = 5
+            };
+
+            var model = new Model {
+                ID = 7,
+                Title = "Test Model",
+                Body = "This should be the new Body"
+            };
+
+            Mapper.CopyProperties<Model, Entity>(model, entity, new List<string> { "^.*ID$" });
+
+            entity.ID.ShouldEqual(1);
+            entity.Title.ShouldEqual("Test Model");
+            entity.Body.ShouldEqual("This should be the new Body");
+        }
+
+        [Test]
         public void Copy_Properties_From_One_Object_To_Another_And_Process_Values()
         {
             var entity = new Entity
@@ -261,6 +289,25 @@ namespace  mab.lib.SimpleMapper.Test {
             models[0].Title.ShouldEqual("Test Child 1");
             models[1].Title.ShouldEqual("Test Child 2");
         }
-    }
 
+        [Test]
+        public void Map_Null_Object_With_MapToExtension()
+        {
+            Entity entity = null;
+
+            var model = entity.MapTo<Model>();
+
+            model.ShouldEqual(null);
+        }
+
+        [Test]
+        public void Map_Null_List_With_MapToListExtension()
+        {
+            List<Entity> emptyList = null;
+
+            var models = emptyList.MapToList<Model>();
+
+            models.ShouldEqual(null);
+        }
+    }
 }

@@ -10,6 +10,8 @@ namespace mab.lib.SimpleMapper
     {
         public static TDestination MapTo<TDestination>(this object source)
         {
+            if(source == null)
+                return default(TDestination);
             Type type = source.GetType();
 
             MethodInfo method = typeof(Mapper).GetMethods().Where(x => x.Name == "Map").First();
@@ -20,6 +22,9 @@ namespace mab.lib.SimpleMapper
 
         public static List<TDestination> MapToList<TDestination>(this object source)
         {
+            if(source == null)
+                return default(List<TDestination>);
+
             Type type = source.GetType();
 
             MethodInfo method = typeof(Mapper).GetMethods().Where(x => x.Name == "MapList").First();
