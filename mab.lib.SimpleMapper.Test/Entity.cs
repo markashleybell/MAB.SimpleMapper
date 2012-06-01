@@ -15,6 +15,12 @@ namespace  mab.lib.SimpleMapper.Test {
 
         public decimal Total { get; set; }
 
+        public double Distance { get; set; }
+        public double? Distance2 { get; set; }
+
+        public short ShortDistance { get; set; }
+        public short? ShortDistance2 { get; set; }
+
         public DateTime Date { get; set; }
 
         public DateTime? DateNullable { get; set; }

@@ -20,6 +20,10 @@ namespace  mab.lib.SimpleMapper.Test {
             Date = new DateTime(2011, 7, 5),
             DateNullable = new DateTime(2012, 8, 10),
             Total = 12.00M,
+            Distance = 12345.12345,
+            Distance2 = 342.231,
+            ShortDistance = 10,
+            ShortDistance2 = 12,
             DecimalNullable = 55.25M,
             BoolNullable = false,
             IntNullable = 5
@@ -34,6 +38,10 @@ namespace  mab.lib.SimpleMapper.Test {
                 Date = new DateTime(2011, 2, 1),
                 DateNullable = null,
                 Total = 12.00M,
+                Distance = 1234.1234,
+                Distance2 = 5493.23211,
+                ShortDistance = 10,
+                ShortDistance2 = null,
                 DecimalNullable = 19.25M,
                 BoolNullable = false,
                 IntNullable = 5,
@@ -50,6 +58,10 @@ namespace  mab.lib.SimpleMapper.Test {
                 Date = new DateTime(2014, 8, 12),
                 DateNullable = null,
                 Total = 5.00M,
+                Distance = 321.321,
+                Distance2 = null,
+                ShortDistance = 10,
+                ShortDistance2 = null,
                 DecimalNullable = 13.6M,
                 BoolNullable = true,
                 IntNullable = 7,
@@ -95,6 +107,37 @@ namespace  mab.lib.SimpleMapper.Test {
         {
             var model = Mapper.Map<Entity, Model>(_entity);
             model.DecimalNullable.ShouldEqual(55.25M);
+        }
+
+        [Test]
+        public void Map_A_Short()
+        {
+            var model = Mapper.Map<Entity, Model>(_entity);
+            model.ShortDistance.ShouldEqual((short)10);
+        }
+
+        [Test]
+        public void Map_A_Nullable_Short()
+        {
+            var model = Mapper.Map<Entity, Model>(_entity);
+            model.ShortDistance2.ShouldEqual((short)12);
+
+            var model2 = Mapper.Map<Entity, Model>(_entities[0]);
+            model2.ShortDistance2.ShouldEqual(null);
+        }
+
+        [Test]
+        public void Map_A_Double()
+        {
+            var model = Mapper.Map<Entity, Model>(_entity);
+            model.Distance.ShouldEqual(12345.12345);
+        }
+
+        [Test]
+        public void Map_A_Nullable_Double()
+        {
+            var model = Mapper.Map<Entity, Model>(_entity);
+            model.Distance2.ShouldEqual(342.231);
         }
 
         [Test]
