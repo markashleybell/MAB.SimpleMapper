@@ -1,4 +1,0 @@
-C:\Source\mab.lib.SimpleMapper\mab.lib.SimpleMapper\bin\Release\mab.lib.SimpleMapper.dll
-C:\Source\mab.lib.SimpleMapper\mab.lib.SimpleMapper\bin\Release\mab.lib.SimpleMapper.pdb
-C:\Source\mab.lib.SimpleMapper\mab.lib.SimpleMapper\obj\Release\mab.lib.SimpleMapper.dll
-C:\Source\mab.lib.SimpleMapper\mab.lib.SimpleMapper\obj\Release\mab.lib.SimpleMapper.pdb

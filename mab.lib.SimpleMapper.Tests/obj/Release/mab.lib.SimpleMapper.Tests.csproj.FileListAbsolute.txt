@@ -1,9 +1,0 @@
-C:\Source\mab.lib.SimpleMapper\mab.lib.SimpleMapper.Tests\bin\Release\mab.lib.SimpleMapper.Tests.dll
-C:\Source\mab.lib.SimpleMapper\mab.lib.SimpleMapper.Tests\bin\Release\mab.lib.SimpleMapper.Tests.pdb
-C:\Source\mab.lib.SimpleMapper\mab.lib.SimpleMapper.Tests\bin\Release\mab.lib.SimpleMapper.dll
-C:\Source\mab.lib.SimpleMapper\mab.lib.SimpleMapper.Tests\bin\Release\nunit.framework.dll
-C:\Source\mab.lib.SimpleMapper\mab.lib.SimpleMapper.Tests\bin\Release\mab.lib.SimpleMapper.pdb
-C:\Source\mab.lib.SimpleMapper\mab.lib.SimpleMapper.Tests\bin\Release\nunit.framework.xml
-C:\Source\mab.lib.SimpleMapper\mab.lib.SimpleMapper.Tests\obj\Release\mab.lib.SimpleMapper.Tests.csprojResolveAssemblyReference.cache
-C:\Source\mab.lib.SimpleMapper\mab.lib.SimpleMapper.Tests\obj\Release\mab.lib.SimpleMapper.Tests.dll
-C:\Source\mab.lib.SimpleMapper\mab.lib.SimpleMapper.Tests\obj\Release\mab.lib.SimpleMapper.Tests.pdb
