@@ -1,0 +1,11 @@
+C:\Source\mab.lib.SimpleMapper\TestHarness\bin\Release\TestHarness.exe
+C:\Source\mab.lib.SimpleMapper\TestHarness\bin\Release\TestHarness.pdb
+C:\Source\mab.lib.SimpleMapper\TestHarness\bin\Release\mab.lib.SimpleMapper.dll
+C:\Source\mab.lib.SimpleMapper\TestHarness\bin\Release\mab.lib.SimpleMapper.Tests.dll
+C:\Source\mab.lib.SimpleMapper\TestHarness\bin\Release\nunit.framework.dll
+C:\Source\mab.lib.SimpleMapper\TestHarness\bin\Release\mab.lib.SimpleMapper.Tests.pdb
+C:\Source\mab.lib.SimpleMapper\TestHarness\bin\Release\mab.lib.SimpleMapper.pdb
+C:\Source\mab.lib.SimpleMapper\TestHarness\bin\Release\nunit.framework.xml
+C:\Source\mab.lib.SimpleMapper\TestHarness\obj\x86\Release\TestHarness.csprojResolveAssemblyReference.cache
+C:\Source\mab.lib.SimpleMapper\TestHarness\obj\x86\Release\TestHarness.exe
+C:\Source\mab.lib.SimpleMapper\TestHarness\obj\x86\Release\TestHarness.pdb

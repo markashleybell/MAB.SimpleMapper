@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{89DA263A-6FFB-4201-90B0-EA6D793558F0}</ProjectGuid>
+    <ProjectGuid>{380A3A0C-6AAA-44E3-B8FA-C37765F01CBE}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>mab.lib.SimpleMapper</RootNamespace>
-    <AssemblyName>mab.lib.SimpleMapper</AssemblyName>
+    <RootNamespace>mab.lib.SimpleMapper.Tests</RootNamespace>
+    <AssemblyName>mab.lib.SimpleMapper.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -31,6 +31,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="nunit.framework, Version=2.6.2.12296, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\NUnit.2.6.2\lib\nunit.framework.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -40,9 +44,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Entity2.cs" />
+    <Compile Include="Model2.cs" />
+    <Compile Include="Entity.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="Mapper.cs" />
+    <Compile Include="Model.cs" />
+    <Compile Include="Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\mab.lib.SimpleMapper\mab.lib.SimpleMapper.csproj">
+      <Project>{89DA263A-6FFB-4201-90B0-EA6D793558F0}</Project>
+      <Name>mab.lib.SimpleMapper</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
