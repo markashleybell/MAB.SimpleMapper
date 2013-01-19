@@ -4,729 +4,195 @@ using System.Linq;
 using System.Text;
 using System.Collections;
 using System.Text.RegularExpressions;
+using System.Reflection;
 
 namespace mab.lib.SimpleMapper
 {
     public static class Mapper
     {
-        private static List<object> _types = new List<object> {
-            typeof(string),
-            typeof(int),
-            typeof(bool),
-            typeof(decimal),
-            typeof(double),
-            typeof(short),
-            typeof(System.DateTime),
-            typeof(System.Nullable<int>),
-            typeof(System.Nullable<bool>),
-            typeof(System.Nullable<decimal>),
-            typeof(System.Nullable<double>),
-            typeof(System.Nullable<short>),
-            typeof(System.Nullable<System.DateTime>)
-        };
+        // Tuple-keyed dictionary to allow us to look up custom mappings 
+        // based on the combination of source and destination type
+        private static Dictionary<Tuple<Type, Type>, object> _maps = new Dictionary<Tuple<Type, Type>, object>();
 
         /// <summary>
-        /// Map all the property values of a source object of type TSource to the correspondingly-named 
-        /// properties of a new destination object of type TDestination
+        /// Add a custom mapping between a particular source and destination type
         /// </summary>
         /// <typeparam name="TSource">Source type</typeparam>
         /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <returns>New object of type TDestination</returns>
-        public static TDestination Map<TSource, TDestination>(TSource source)
+        /// <param name="map">Delegate which performs the custom mapping</param>
+        public static void AddMapping<TSource, TDestination>(Action<TSource, TDestination> map)
+            where TSource : class
+            where TDestination : class
         {
-            return Map<TSource, TDestination>(source, null, new List<string>(), null, new List<string>());
+            _maps.Add(Tuple.Create(typeof(TSource), typeof(TDestination)), map);
         }
 
         /// <summary>
-        /// Map all the property values of a source object of type TSource to the correspondingly-named 
-        /// properties of a new destination object of type TDestination
+        /// Clear all custom mappings
         /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="constructorParameters">Constructor parameters to pass to the newly instantiated objects</param>
-        /// <returns>New object of type TDestination</returns>
-        public static TDestination Map<TSource, TDestination>(TSource source, object[] constructorParameters)
+        public static void ClearMappings()
         {
-            return Map<TSource, TDestination>(source, constructorParameters, new List<string>(), null, new List<string>());
+            _maps.Clear();
         }
 
         /// <summary>
-        /// Map all the property values of a source object of type TSource to the correspondingly-named 
-        /// properties of a new destination object of type TDestination
+        /// Map a source object of type TSource to a new object of type TDestination
         /// </summary>
         /// <typeparam name="TSource">Source type</typeparam>
         /// <typeparam name="TDestination">Destination type</typeparam>
         /// <param name="source">Source object</param>
-        /// <param name="constructorParameters">Constructor parameters to pass to the newly instantiated objects</param>
-        /// <param name="excludes">A list of property names for which values should not be copied</param>
         /// <returns>New object of type TDestination</returns>
-        public static TDestination Map<TSource, TDestination>(TSource source, object[] constructorParameters, List<string> excludes)
+        private static TDestination Map<TSource, TDestination>(TSource source)
+            where TSource : class
+            where TDestination : class
         {
-            return Map<TSource, TDestination>(source, constructorParameters, excludes, null, new List<string>());
-        }
-
-        /// <summary>
-        /// Map all the property values of a source object of type TSource to the correspondingly-named 
-        /// properties of a new destination object of type TDestination
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="constructorParameters">Constructor parameters to pass to the newly instantiated objects</param>
-        /// <param name="excludes">A list of property names for which values should not be copied</param>
-        /// <param name="processingFunction">A function to apply to each property value before it is assigned to the destination property</param>
-        /// <returns>New object of type TDestination</returns>
-        public static TDestination Map<TSource, TDestination>(TSource source, object[] constructorParameters, List<string> excludes, Func<object, object> processingFunction)
-        {
-            return Map<TSource, TDestination>(source, constructorParameters, excludes, processingFunction, new List<string>());
-        }
-
-        /// <summary>
-        /// Map all the property values of a source object of type TSource to the correspondingly-named 
-        /// properties of a new destination object of type TDestination
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="constructorParameters">Constructor parameters to pass to the newly instantiated objects</param>
-        /// <param name="excludes">A list of property names for which values should not be copied</param>
-        /// <param name="processingFunction">A function to apply to each property value before it is assigned to the destination property</param>
-        /// <param name="processingExcludes">A list of property names for which the processing function should not be applied</param>
-        /// <returns>New object of type TDestination</returns>
-        public static TDestination Map<TSource, TDestination>(TSource source, object[] constructorParameters, List<string> excludes, Func<object, object> processingFunction, List<string> processingExcludes)
-        {
-            if(source == null)
-            {
+            if (source == null)
                 return default(TDestination);
-            }
 
-            TDestination destination;
-            if(constructorParameters == null)
-                destination = Activator.CreateInstance<TDestination>();
-            else
-                destination = (TDestination)Activator.CreateInstance(typeof(TDestination), constructorParameters);
+            // Create a new instance of the destination type
+            var destination = Activator.CreateInstance<TDestination>();
 
-            Map<TSource, TDestination>(source, destination, excludes, processingFunction, processingExcludes);
+            Map<TSource, TDestination>(source, destination);
+
             return destination;
         }
 
         /// <summary>
-        /// Map all the property values of a source object of type TSource to any correspondingly-named 
-        /// properties of an existing destination object of type TDestination which are prefixed with the source type name
+        /// Map a source object of type TSource to an existing object of type TDestination
         /// </summary>
         /// <typeparam name="TSource">Source type</typeparam>
         /// <typeparam name="TDestination">Destination type</typeparam>
         /// <param name="source">Source object</param>
-        /// <returns>New object of type TDestination</returns>
-        public static TDestination MapToPrefixed<TSource, TDestination>(TSource source)
+        /// <param name="destination">Destination object</param>
+        private static void Map<TSource, TDestination>(TSource source, TDestination destination)
+            where TSource : class
+            where TDestination : class
         {
-            return MapToPrefixed<TSource, TDestination>(source, null, null, null, null);
-        }
+            var key = Tuple.Create(typeof(TSource), typeof(TDestination));
 
-        /// <summary>
-        /// Map all the property values of a source object of type TSource to any correspondingly-named 
-        /// properties of an existing destination object of type TDestination which are prefixed with the source type name
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="constructorParameters">Constructor parameters to pass to the newly instantiated objects</param>
-        /// <returns>New object of type TDestination</returns>
-        public static TDestination MapToPrefixed<TSource, TDestination>(TSource source, object[] constructorParameters)
-        {
-            return MapToPrefixed<TSource, TDestination>(source, constructorParameters, null, null, null);
-        }
+            var map = (_maps.ContainsKey(key)) ? _maps[key] as Action<TSource, TDestination> : null;
 
-        /// <summary>
-        /// Map all the property values of a source object of type TSource to any correspondingly-named 
-        /// properties of an existing destination object of type TDestination which are prefixed with the source type name
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="constructorParameters">Constructor parameters to pass to the newly instantiated objects</param>
-        /// <param name="excludes">A list of property names for which values should not be copied</param>
-        /// <returns>New object of type TDestination</returns>
-        public static TDestination MapToPrefixed<TSource, TDestination>(TSource source, object[] constructorParameters, List<string> excludes)
-        {
-            return MapToPrefixed<TSource, TDestination>(source, constructorParameters, excludes, null, null);
-        }
-
-        /// <summary>
-        /// Map all the property values of a source object of type TSource to any correspondingly-named 
-        /// properties of an existing destination object of type TDestination which are prefixed with the source type name
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="constructorParameters">Constructor parameters to pass to the newly instantiated objects</param>
-        /// <param name="excludes">A list of property names for which values should not be copied</param>
-        /// <param name="processingFunction">A function to apply to each property value before it is assigned to the destination property</param>
-        /// <returns>New object of type TDestination</returns>
-        public static TDestination MapToPrefixed<TSource, TDestination>(TSource source, object[] constructorParameters, List<string> excludes, Func<object, object> processingFunction)
-        {
-            return MapToPrefixed<TSource, TDestination>(source, constructorParameters, excludes, processingFunction, null);
-        }
-
-        /// <summary>
-        /// Map all the property values of a source object of type TSource to the correspondingly-named 
-        /// properties of a new destination object of type TDestination
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="constructorParameters">Constructor parameters to pass to the newly instantiated objects</param>
-        /// <param name="excludes">A list of property names for which values should not be copied</param>
-        /// <param name="processingFunction">A function to apply to each property value before it is assigned to the destination property</param>
-        /// <param name="processingExcludes">A list of property names for which the processing function should not be applied</param>
-        /// <returns>New object of type TDestination</returns>
-        public static TDestination MapToPrefixed<TSource, TDestination>(TSource source, object[] constructorParameters, List<string> excludes, Func<object, object> processingFunction, List<string> processingExcludes)
-        {
-            if(source == null)
+            if (map == null)
             {
-                return default(TDestination);
-            }
+                // There's no specific mapping set up, so we'll just do it by convention
+                var sourceProperties = source.GetType().GetProperties();
+                var destinationProperties = destination.GetType().GetProperties();
 
-            TDestination destination;
-            if(constructorParameters == null)
-                destination = Activator.CreateInstance<TDestination>();
+                // Loop through the properties of the source object
+                foreach (var property in sourceProperties)
+                {
+                    // Try and find a matching property of the destination type (match on name and type)
+                    var destinationProperty = destinationProperties.FirstOrDefault(x => {
+                        return x.Name.Equals(property.Name, StringComparison.OrdinalIgnoreCase)
+                            && x.PropertyType == property.PropertyType
+                            && x.CanWrite;
+                    });
+
+                    // If the destination type has a matching property
+                    if (destinationProperty != null)
+                    {
+                        // Update the destination property with the value of the source property
+                        var val = property.GetValue(source, null);
+                        destinationProperty.SetValue(destination, val, null);
+                    }
+                }
+
+                // TODO: Generate delegate code using CSharpCodeProvider and add the delegate to custom mappings collection
+                // This will avoid reflection on every call to the mapper
+            }
             else
-                destination = (TDestination)Activator.CreateInstance(typeof(TDestination), constructorParameters);
-
-            MapToPrefixed<TSource, TDestination>(source, destination, excludes, processingFunction, processingExcludes);
-            return destination;
-        }
-
-        /// <summary>
-        /// Map all the property values of a source object of type TSource which are prefixed with the type name
-        /// of TDestination (e.g TDestination_ID) to any correspondingly-named properties of an existing destination 
-        /// object of type TDestination 
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <returns>New object of type TDestination</returns>
-        public static TDestination MapFromPrefixed<TSource, TDestination>(TSource source)
-        {
-            return MapFromPrefixed<TSource, TDestination>(source, null, null, null, null);
-        }
-
-        /// <summary>
-        /// Map all the property values of a source object of type TSource which are prefixed with the type name
-        /// of TDestination (e.g TDestination_ID) to any correspondingly-named properties of an existing destination 
-        /// object of type TDestination 
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="constructorParameters">Constructor parameters to pass to the newly instantiated objects</param>
-        /// <returns>New object of type TDestination</returns>
-        public static TDestination MapFromPrefixed<TSource, TDestination>(TSource source, object[] constructorParameters)
-        {
-            return MapFromPrefixed<TSource, TDestination>(source, constructorParameters, null, null, null);
-        }
-
-        /// <summary>
-        /// Map all the property values of a source object of type TSource which are prefixed with the type name
-        /// of TDestination (e.g TDestination_ID) to any correspondingly-named properties of an existing destination 
-        /// object of type TDestination 
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="constructorParameters">Constructor parameters to pass to the newly instantiated objects</param>
-        /// <param name="excludes">A list of property names for which values should not be copied</param>
-        /// <returns>New object of type TDestination</returns>
-        public static TDestination MapFromPrefixed<TSource, TDestination>(TSource source, object[] constructorParameters, List<string> excludes)
-        {
-            return MapFromPrefixed<TSource, TDestination>(source, constructorParameters, excludes, null, null);
-        }
-
-        /// <summary>
-        /// Map all the property values of a source object of type TSource which are prefixed with the type name
-        /// of TDestination (e.g TDestination_ID) to any correspondingly-named properties of an existing destination 
-        /// object of type TDestination 
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="constructorParameters">Constructor parameters to pass to the newly instantiated objects</param>
-        /// <param name="excludes">A list of property names for which values should not be copied</param>
-        /// <param name="processingFunction">A function to apply to each property value before it is assigned to the destination property</param>
-        /// <returns>New object of type TDestination</returns>
-        public static TDestination MapFromPrefixed<TSource, TDestination>(TSource source, object[] constructorParameters, List<string> excludes, Func<object, object> processingFunction)
-        {
-            return MapFromPrefixed<TSource, TDestination>(source, constructorParameters, excludes, processingFunction, null);
-        }
-
-        /// <summary>
-        /// Map all the property values of a source object of type TSource which are prefixed with the type name
-        /// of TDestination (e.g TDestination_ID) to any correspondingly-named properties of an existing destination 
-        /// object of type TDestination 
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="constructorParameters">Constructor parameters to pass to the newly instantiated objects</param>
-        /// <param name="excludes">A list of property names for which values should not be copied</param>
-        /// <param name="processingFunction">A function to apply to each property value before it is assigned to the destination property</param>
-        /// <param name="processingExcludes">A list of property names for which the processing function should not be applied</param>
-        /// <returns>New object of type TDestination</returns>
-        public static TDestination MapFromPrefixed<TSource, TDestination>(TSource source, object[] constructorParameters, List<string> excludes, Func<object, object> processingFunction, List<string> processingExcludes)
-        {
-            if(source == null)
             {
-                return default(TDestination);
-            }
-
-            TDestination destination;
-            if(constructorParameters == null)
-                destination = Activator.CreateInstance<TDestination>();
-            else
-                destination = (TDestination)Activator.CreateInstance(typeof(TDestination), constructorParameters);
-
-            MapFromPrefixed<TSource, TDestination>(source, destination, excludes, processingFunction, processingExcludes);
-            return destination;
-        }
-
-        /// <summary>
-        /// Map all the property values of a source object of type TSource to the correspondingly-named 
-        /// properties of an existing destination object of type TDestination
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="destination">Destination object</param>
-        /// <returns>New object of type TDestination</returns>
-        public static void Map<TSource, TDestination>(TSource source, TDestination destination)
-        {
-            Map<TSource, TDestination>(source, destination, new List<string>(), null, new List<string>());
-        }
-
-        /// <summary>
-        /// Map all the property values of a source object of type TSource to the correspondingly-named 
-        /// properties of an existing destination object of type TDestination
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="destination">Destination object</param>
-        /// <param name="excludes">A list of property names for which values should not be copied</param>
-        /// <returns>New object of type TDestination</returns>
-        public static void Map<TSource, TDestination>(TSource source, TDestination destination, List<string> excludes)
-        {
-            Map<TSource, TDestination>(source, destination, excludes, null, new List<string>());
-        }
-
-        /// <summary>
-        /// Map all the property values of a source object of type TSource to the correspondingly-named 
-        /// properties of an existing destination object of type TDestination
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="destination">Destination object</param>
-        /// <param name="excludes">A list of property names for which values should not be copied</param>
-        /// <param name="processingFunction">A function to apply to each property value before it is assigned to the destination property</param>
-        /// <returns>New object of type TDestination</returns>
-        public static void Map<TSource, TDestination>(TSource source, TDestination destination, List<string> excludes, Func<object, object> processingFunction)
-        {
-            Map<TSource, TDestination>(source, destination, excludes, processingFunction, new List<string>());
-        }
-
-        /// <summary>
-        /// Map all the property values of a source object of type TSource to the correspondingly-named 
-        /// properties of an existing destination object of type TDestination
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="destination">Destination object</param>
-        /// <param name="excludes">A list of property names for which values should not be copied</param>
-        /// <param name="processingFunction">A function to apply to each property value before it is assigned to the destination property</param>
-        /// <param name="processingExcludes">A list of property names for which the processing function should not be applied</param>
-        /// <returns>New object of type TDestination</returns>
-        public static void Map<TSource, TDestination>(TSource source, TDestination destination, List<string> excludes, Func<object, object> processingFunction, List<string> processingExcludes)
-        {
-            var sourceType = source.GetType();
-            var destinationType = destination.GetType();
-
-            var sourceProperties = sourceType.GetProperties();
-            var destinationProperties = destinationType.GetProperties();
-
-            foreach(var property in sourceProperties)
-            {
-                var doMapping = true;
-
-                // Don't map properties where the property name matches any of the exclude regular expressions
-                if (excludes != null)
-                {
-                    foreach (var exclude in excludes)
-                        if (Regex.IsMatch(property.Name, exclude, RegexOptions.IgnoreCase | RegexOptions.Multiline))
-                            doMapping = false;
-                }
-
-                if(doMapping)
-                {
-                    var pType = property.PropertyType;
-
-                    if(_types.Contains(pType))
-                    {
-                        var destinationProperty = destinationProperties.FirstOrDefault(x => x.Name == property.Name);
-
-                        if(destinationProperty != null)
-                        {
-                            try
-                            {
-                                var val = property.GetValue(source, null);
-
-                                if(processingFunction != null && (processingExcludes == null || !processingExcludes.Contains(property.Name)))
-                                    val = processingFunction(val);
-
-                                destinationProperty.SetValue(destination, val, null);
-                            }
-                            catch(ArgumentException e)
-                            {
-                                if(e.Message != "Property set method not found.")
-                                    throw e;
-                            }
-                        }
-                    }
-                }
+                // Map using the stored delegate for this source/destination type combination
+                map(source, destination);
             }
         }
 
         /// <summary>
-        /// Map all the property values of a source object of type TSource to any correspondingly-named 
-        /// properties of an existing destination object of type TDestination which are prefixed with the source type name
+        /// Map a list of objects of type TSource to a new list of objects of type TDestination
         /// </summary>
         /// <typeparam name="TSource">Source type</typeparam>
         /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="destination">Destination object</param>
-        /// <returns>New object of type TDestination</returns>
-        public static void MapToPrefixed<TSource, TDestination>(TSource source, TDestination destination)
+        /// <param name="source">Source list</param>
+        /// <returns>New list of objects of type TDestination</returns>
+        private static List<TDestination> MapList<TSource, TDestination>(List<TSource> source)
+            where TSource : class
+            where TDestination : class
         {
-            MapToPrefixed<TSource, TDestination>(source, destination, null, null, null);
-        }
-
-        /// <summary>
-        /// Map all the property values of a source object of type TSource to any correspondingly-named 
-        /// properties of an existing destination object of type TDestination which are prefixed with the source type name
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="destination">Destination object</param>
-        /// <param name="excludes">A list of property names for which values should not be copied</param>
-        /// <returns>New object of type TDestination</returns>
-        public static void MapToPrefixed<TSource, TDestination>(TSource source, TDestination destination, List<string> excludes)
-        {
-            MapToPrefixed<TSource, TDestination>(source, destination, excludes, null, null);
-        }
-
-        /// <summary>
-        /// Map all the property values of a source object of type TSource to any correspondingly-named 
-        /// properties of an existing destination object of type TDestination which are prefixed with the source type name
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="destination">Destination object</param>
-        /// <param name="excludes">A list of property names for which values should not be copied</param>
-        /// <param name="processingFunction">A function to apply to each property value before it is assigned to the destination property</param>
-        /// <returns>New object of type TDestination</returns>
-        public static void MapToPrefixed<TSource, TDestination>(TSource source, TDestination destination, List<string> excludes, Func<object, object> processingFunction)
-        {
-            MapToPrefixed<TSource, TDestination>(source, destination, excludes, processingFunction, null);
-        }
-
-        /// <summary>
-        /// Map all the property values of a source object of type TSource to any correspondingly-named 
-        /// properties of an existing destination object of type TDestination which are prefixed with the source type name
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="destination">Destination object</param>
-        /// <param name="excludes">A list of property names for which values should not be copied</param>
-        /// <param name="processingFunction">A function to apply to each property value before it is assigned to the destination property</param>
-        /// <param name="processingExcludes">A list of property names for which the processing function should not be applied</param>
-        /// <returns>New object of type TDestination</returns>
-        public static void MapToPrefixed<TSource, TDestination>(TSource source, TDestination destination, List<string> excludes, Func<object, object> processingFunction, List<string> processingExcludes)
-        {
-            var sourceType = source.GetType();
-            var destinationType = destination.GetType();
-
-            var sourceProperties = sourceType.GetProperties();
-            var destinationProperties = destinationType.GetProperties();
-
-            foreach(var property in sourceProperties)
-            {
-                var doMapping = true;
-
-                // Don't map properties where the property name matches any of the exclude regular expressions
-                if (excludes != null)
-                {
-                    foreach (var exclude in excludes)
-                        if (Regex.IsMatch(property.Name, exclude, RegexOptions.IgnoreCase | RegexOptions.Multiline))
-                            doMapping = false;
-                }
-
-                if(doMapping)
-                {
-                    var pType = property.PropertyType;
-
-                    if(_types.Contains(pType))
-                    {
-                        var destinationProperty = destinationProperties.FirstOrDefault(x => x.Name == sourceType.Name + "_" + property.Name);
-
-                        if(destinationProperty != null)
-                        {
-                            try
-                            {
-                                var val = property.GetValue(source, null);
-
-                                if(processingFunction != null && (processingExcludes == null || !processingExcludes.Contains(property.Name)))
-                                    val = processingFunction(val);
-
-                                destinationProperty.SetValue(destination, val, null);
-                            }
-                            catch(ArgumentException e)
-                            {
-                                if(e.Message != "Property set method not found.")
-                                    throw e;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Map all the property values of a source object of type TSource which are prefixed with the type name
-        /// of TDestination (e.g TDestination_ID) to any correspondingly-named properties of an existing destination 
-        /// object of type TDestination 
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="destination">Destination object</param>
-        /// <returns>New object of type TDestination</returns>
-        public static void MapFromPrefixed<TSource, TDestination>(TSource source, TDestination destination)
-        {
-            MapFromPrefixed<TSource, TDestination>(source, destination, null, null, null);
-        }
-
-        /// <summary>
-        /// Map all the property values of a source object of type TSource which are prefixed with the type name
-        /// of TDestination (e.g TDestination_ID) to any correspondingly-named properties of an existing destination 
-        /// object of type TDestination 
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="destination">Destination object</param>
-        /// <param name="excludes">A list of property names for which values should not be copied</param>
-        /// <returns>New object of type TDestination</returns>
-        public static void MapFromPrefixed<TSource, TDestination>(TSource source, TDestination destination, List<string> excludes)
-        {
-            MapFromPrefixed<TSource, TDestination>(source, destination, excludes, null, null);
-        }
-
-        /// <summary>
-        /// Map all the property values of a source object of type TSource which are prefixed with the type name
-        /// of TDestination (e.g TDestination_ID) to any correspondingly-named properties of an existing destination 
-        /// object of type TDestination 
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="destination">Destination object</param>
-        /// <param name="excludes">A list of property names for which values should not be copied</param>
-        /// <param name="processingFunction">A function to apply to each property value before it is assigned to the destination property</param>
-        /// <returns>New object of type TDestination</returns>
-        public static void MapFromPrefixed<TSource, TDestination>(TSource source, TDestination destination, List<string> excludes, Func<object, object> processingFunction)
-        {
-            MapFromPrefixed<TSource, TDestination>(source, destination, excludes, processingFunction, null);
-        }
-
-        /// <summary>
-        /// Map all the property values of a source object of type TSource which are prefixed with the type name
-        /// of TDestination (e.g TDestination_ID) to any correspondingly-named properties of an existing destination 
-        /// object of type TDestination 
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="destination">Destination object</param>
-        /// <param name="excludes">A list of property names for which values should not be copied</param>
-        /// <param name="processingFunction">A function to apply to each property value before it is assigned to the destination property</param>
-        /// <param name="processingExcludes">A list of property names for which the processing function should not be applied</param>
-        /// <returns>New object of type TDestination</returns>
-        public static void MapFromPrefixed<TSource, TDestination>(TSource source, TDestination destination, List<string> excludes, Func<object, object> processingFunction, List<string> processingExcludes)
-        {
-            var sourceType = source.GetType();
-            var destinationType = destination.GetType();
-
-            var sourceProperties = sourceType.GetProperties();
-            var destinationProperties = destinationType.GetProperties();
-
-            foreach(var property in sourceProperties.Where(p => p.Name.StartsWith(destinationType.Name + "_")))
-            {
-                var doMapping = true;
-
-                // Don't map properties where the property name matches any of the exclude regular expressions
-                if (excludes != null)
-                {
-                    foreach (var exclude in excludes)
-                        if (Regex.IsMatch(property.Name, exclude, RegexOptions.IgnoreCase | RegexOptions.Multiline))
-                            doMapping = false;
-                }
-
-                if(doMapping)
-                {
-                    var pType = property.PropertyType;
-
-                    if(_types.Contains(pType))
-                    {
-                        var destinationPropertyName = property.Name.Substring(property.Name.IndexOf("_") + 1);
-
-                        var destinationProperty = destinationProperties.FirstOrDefault(x => x.Name == destinationPropertyName);
-
-                        if(destinationProperty != null)
-                        {
-                            try
-                            {
-                                var val = property.GetValue(source, null);
-
-                                if(processingFunction != null && (processingExcludes == null || !processingExcludes.Contains(property.Name)))
-                                    val = processingFunction(val);
-
-                                destinationProperty.SetValue(destination, val, null);
-                            }
-                            catch(ArgumentException e)
-                            {
-                                if(e.Message != "Property set method not found.")
-                                    throw e;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Map all the properties of every object in a source list to the correspondingly-named 
-        /// properties of objects in a new destination list
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <returns>New object of type List<TDestination></returns>
-        public static List<TDestination> MapList<TSource, TDestination>(List<TSource> source)
-        {
-            return MapList<TSource, TDestination>(source, null, new List<string>(), null, new List<string>());
-        }
-
-        /// <summary>
-        /// Map all the properties of every object in a source list to the correspondingly-named 
-        /// properties of objects in a new destination list
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="constructorParameters">Constructor parameters to pass to the newly instantiated objects</param>
-        /// <returns>New object of type List<TDestination></returns>
-        public static List<TDestination> MapList<TSource, TDestination>(List<TSource> source, object[] constructorParameters)
-        {
-            return MapList<TSource, TDestination>(source, constructorParameters, new List<string>(), null, new List<string>());
-        }
-
-        /// <summary>
-        /// Map all the properties of every object in a source list to the correspondingly-named 
-        /// properties of objects in a new destination list
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="constructorParameters">Constructor parameters to pass to the newly instantiated objects</param>
-        /// <param name="excludes">A list of property names for which values should not be copied</param>
-        /// <returns>New object of type List<TDestination></returns>
-        public static List<TDestination> MapList<TSource, TDestination>(List<TSource> source, object[] constructorParameters, List<string> excludes)
-        {
-            return MapList<TSource, TDestination>(source, constructorParameters, excludes, null, new List<string>());
-        }
-
-        /// <summary>
-        /// Map all the properties of every object in a source list to the correspondingly-named 
-        /// properties of objects in a new destination list
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="constructorParameters">Constructor parameters to pass to the newly instantiated objects</param>
-        /// <param name="excludes">A list of property names for which values should not be copied</param>
-        /// <param name="processingFunction">A function to apply to each property value before it is assigned to the destination property</param>
-        /// <returns>New object of type List<TDestination></returns>
-        public static List<TDestination> MapList<TSource, TDestination>(List<TSource> source, object[] constructorParameters, List<string> excludes, Func<object, object> processingFunction)
-        {
-            return MapList<TSource, TDestination>(source, constructorParameters, excludes, processingFunction, new List<string>());
-        }
-
-        /// <summary>
-        /// Map all the properties of every object in a source list to the correspondingly-named 
-        /// properties of objects in a new destination list
-        /// </summary>
-        /// <typeparam name="TSource">Source type</typeparam>
-        /// <typeparam name="TDestination">Destination type</typeparam>
-        /// <param name="source">Source object</param>
-        /// <param name="constructorParameters">Constructor parameters to pass to the newly instantiated objects</param>
-        /// <param name="excludes">A list of property names for which values should not be copied</param>
-        /// <param name="processingFunction">A function to apply to each property value before it is assigned to the destination property</param>
-        /// <param name="processingExcludes">A list of property names for which the processing function should not be applied</param>
-        /// <returns>New object of type List<TDestination></returns>
-        public static List<TDestination> MapList<TSource, TDestination>(List<TSource> source, object[] constructorParameters, List<string> excludes, Func<object, object> processingFunction, List<string> processingExcludes)
-        {
-            if(source == null)
-            {
-                return default(List<TDestination>);
-            }
+            // TODO: Should throw exception, surely. Was there a reason I did this in the previous version? 
+            //if (source == null)
+            //    return default(List<TDestination>);
 
             var destination = new List<TDestination>();
 
-            foreach(var item in source)
-            {
-                destination.Add(Map<TSource, TDestination>(item, constructorParameters, excludes, processingFunction, processingExcludes));
-            }
+            foreach (var item in source)
+                destination.Add(Map<TSource, TDestination>(item));
 
             return destination;
         }
 
-        [Obsolete("CopyProperties<TSource, TDestination>(TSource source, TDestination destination) is deprecated, please use Map<TSource, TDestination>(TSource source, TDestination destination) instead.", true)]
-        public static void CopyProperties<TSource, TDestination>(TSource source, TDestination destination)
+        /// <summary>
+        /// Map a source object to a destination object
+        /// </summary>
+        /// <param name="source">Source object</param>
+        /// <param name="destination">Destination object</param>
+        public static void MapTo(this object source, object destination)
         {
-            Map<TSource, TDestination>(source, destination, new List<string>(), null, new List<string>());
+            // Use reflection to get the Map<TSource, TDestination>(TSource source, TDestination destination) method
+            MethodInfo method = typeof(Mapper).GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
+                                              .Where(x => x.Name == "Map" && x.GetParameters().Length == 2)
+                                              .First();
+
+            // Get the types of the source and destination objects and pass them into the method as type parameters
+            MethodInfo generic = method.MakeGenericMethod(new Type[] { source.GetType(), destination.GetType() });
+
+            // Invoke the Map method, passing in the source and destination objects as method parameters
+            generic.Invoke(null, new object[] { source, destination });
         }
 
-        [Obsolete("CopyProperties<TSource, TDestination>(TSource source, TDestination destination, List<string> excludes) is deprecated, please use Map<TSource, TDestination>(TSource source, TDestination destination, List<string> excludes) instead.", true)]
-        public static void CopyProperties<TSource, TDestination>(TSource source, TDestination destination, List<string> excludes)
+        /// <summary>
+        /// Map a source object to a new destination object of type TDestination
+        /// </summary>
+        /// <typeparam name="TDestination">Destination type</typeparam>
+        /// <param name="source">Source object</param>
+        /// <returns>New object of type TDestination</returns>
+        public static TDestination MapTo<TDestination>(this object source)
+            where TDestination : class
         {
-            Map<TSource, TDestination>(source, destination, excludes, null, new List<string>());   
+            // Use reflection to get the Map<TSource, TDestination>(TSource source) method
+            MethodInfo method = typeof(Mapper).GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
+                                              .Where(x => x.Name == "Map" && x.GetParameters().Length == 1)
+                                              .First();
+
+            // Get the type of the source objects and pass it into the method as a type parameter,
+            // along with the type of the new destination object
+            MethodInfo generic = method.MakeGenericMethod(new Type[] { source.GetType(), typeof(TDestination) });
+
+            // Invoke the Map method, passing in the source object as a method parameter, and 
+            // return the resulting object of type TDestination
+            return (TDestination)generic.Invoke(null, new object[] { source });
         }
 
-        [Obsolete("CopyProperties<TSource, TDestination>(TSource source, TDestination destination, List<string> excludes, Func<object, object> processingFunction) is deprecated, please use Map<TSource, TDestination>(TSource source, TDestination destination, List<string> excludes, Func<object, object> processingFunction) instead.", true)]
-        public static void CopyProperties<TSource, TDestination>(TSource source, TDestination destination, List<string> excludes, Func<object, object> processingFunction)
+        /// <summary>
+        /// Map a list of source objects to a new list of objects of type TDestination
+        /// </summary>
+        /// <typeparam name="TDestination">Destination type</typeparam>
+        /// <param name="source">Source list</param>
+        /// <returns>New list of objects of type TDestination</returns>
+        public static List<TDestination> MapToList<TDestination>(this object source)
+            where TDestination : class
         {
-            Map<TSource, TDestination>(source, destination, excludes, processingFunction, new List<string>());
-        }
+            // Use reflection to get the MapList<TSource, TDestination>(TSource source) method
+            MethodInfo method = typeof(Mapper).GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
+                                              .Where(x => x.Name == "MapList" && x.GetParameters().Length == 1)
+                                              .First();
 
-        [Obsolete("CopyProperties<TSource, TDestination>(TSource source, TDestination destination, List<string> excludes, Func<object, object> processingFunction, List<string> processingExcludes) is deprecated, please use Map<TSource, TDestination>(TSource source, TDestination destination, List<string> excludes, Func<object, object> processingFunction, List<string> processingExcludes) instead.", true)]
-        public static void CopyProperties<TSource, TDestination>(TSource source, TDestination destination, List<string> excludes, Func<object, object> processingFunction, List<string> processingExcludes)
-        {
-            Map<TSource, TDestination>(source, destination, excludes, processingFunction, processingExcludes);
+            // Get the type argument of the source list and pass it into the method as a type parameter,
+            // along with the type of the new destination list
+            MethodInfo generic = method.MakeGenericMethod(new Type[] { source.GetType().GetGenericArguments()[0], typeof(TDestination) });
+
+            // Invoke the MapList method, passing in the source list as a method parameter, and 
+            // return the resulting list of objects of type TDestination
+            return (List<TDestination>)generic.Invoke(null, new object[] { source });
         }
     }
 }

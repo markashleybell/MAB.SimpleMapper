@@ -60,39 +60,39 @@ namespace TestHarness
                 Body = "DESCRIPTION OF ENTITY 2"
             };
 
-            var c = entity.Children;
+            //var c = entity.Children;
 
-            var model = Mapper.Map<Entity,Model>(entity);
+            //var model = Mapper.Map<Entity,Model>(entity);
 
-            var child = entity.Children.Where(x => x.ID == 2).FirstOrDefault();
+            //var child = entity.Children.Where(x => x.ID == 2).FirstOrDefault();
 
-            var nullModel = Mapper.Map<Entity2,Model2>(child.Detail);
+            //var nullModel = Mapper.Map<Entity2,Model2>(child.Detail);
 
-            var model2 = entity.MapTo<Model>();
+            //var model2 = entity.MapTo<Model>();
 
-            var childModels = entity.Children.MapToList<Model>();
-            //var childModels = entity.Children.MapToList<Model>(new object[] { 50, "TEST2" });
+            //var childModels = entity.Children.MapToList<Model>();
+            ////var childModels = entity.Children.MapToList<Model>(new object[] { 50, "TEST2" });
 
 
-            var childModels2 = Mapper.MapList<Entity, Model>(c.ToList());
+            //var childModels2 = Mapper.MapList<Entity, Model>(c.ToList());
 
-            var model3 = new Model {
-                ID = 7,
-                Title = "Test Model",
-                Body = "This should be the new Body"
-            };
+            //var model3 = new Model {
+            //    ID = 7,
+            //    Title = "Test Model",
+            //    Body = "This should be the new Body"
+            //};
 
-            entity.MapTo(model3);
+            //entity.MapTo(model3);
 
-            var model4 = new Model();
+            //var model4 = new Model();
 
-            entity.MapTo(model4);
+            //entity.MapTo(model4);
 
-            Mapper.MapToPrefixed<Entity2, Model>(entity2, model4, null, null, null);
+            //Mapper.MapToPrefixed<Entity2, Model>(entity2, model4, null, null, null);
 
-            var entity3 = new Entity2();
+            //var entity3 = new Entity2();
 
-            Mapper.MapFromPrefixed<Model, Entity2>(model4, entity3, null, null, null);
+            //Mapper.MapFromPrefixed<Model, Entity2>(model4, entity3, null, null, null);
 
             Console.WriteLine();
         }

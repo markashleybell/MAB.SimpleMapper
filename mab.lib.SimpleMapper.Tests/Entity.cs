@@ -7,31 +7,22 @@ namespace mab.lib.SimpleMapper.Tests
 {
     public class Entity
     {
-        public int ID { get; set; }
-        public string Title { get; set; }
-        public string Body { get; set; }
-        public string Other { get; set; }
-        public bool Publish { get; set; }
-        public bool? BoolNullable { get; set; }
-
-        public decimal Total { get; set; }
-
-        public double Distance { get; set; }
-        public double? Distance2 { get; set; }
-
-        public short ShortDistance { get; set; }
-        public short? ShortDistance2 { get; set; }
-
-        public DateTime Date { get; set; }
-
-        public DateTime? DateNullable { get; set; }
+        public int Int { get; set; }
         public int? IntNullable { get; set; }
+        public string String { get; set; }
+        public string String2 { get; set; }
+        public bool Bool { get; set; }
+        public bool? BoolNullable { get; set; }
+        public decimal Decimal { get; set; }
         public decimal? DecimalNullable { get; set; }
-
-        public Entity2 Detail { get; set; }
-
-        public IEnumerable<string> Tags { get; set; }
-
-        public IEnumerable<Entity> Children { get; set; }
+        public double Double { get; set; }
+        public double? DoubleNullable { get; set; }
+        public short Short { get; set; }
+        public short? ShortNullable { get; set; }
+        public DateTime Date { get; set; }
+        public DateTime? DateNullable { get; set; }
+        public Entity2 Entity2 { get; set; }
+        public IEnumerable<string> ListOfStrings { get; set; }
+        public IEnumerable<Entity> ListOfEntities { get; set; }
     }
 }
