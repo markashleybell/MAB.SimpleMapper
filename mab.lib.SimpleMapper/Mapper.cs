@@ -95,7 +95,7 @@ namespace mab.lib.SimpleMapper
                     // Try and find a matching property of the destination type (match on name and type)
                     var destinationProperty = destinationProperties.FirstOrDefault(x => {
                         return x.Name.Equals(property.Name, StringComparison.OrdinalIgnoreCase)
-                            && x.PropertyType == property.PropertyType
+                            && (x.PropertyType == property.PropertyType) || (x.PropertyType.IsEnum && property.PropertyType.IsEnum)
                             && x.CanWrite;
                     });
 

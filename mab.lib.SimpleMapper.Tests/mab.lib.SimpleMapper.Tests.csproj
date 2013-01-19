@@ -45,10 +45,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Entity2.cs" />
+    <Compile Include="EntityEnum.cs" />
     <Compile Include="Model2.cs" />
     <Compile Include="Entity.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Model.cs" />
+    <Compile Include="ModelEnum.cs" />
     <Compile Include="Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

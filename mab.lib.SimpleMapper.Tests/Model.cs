@@ -24,6 +24,7 @@ namespace mab.lib.SimpleMapper.Tests
         public Entity2 Entity2 { get; set; }
         public IEnumerable<string> ListOfStrings { get; set; }
         public IEnumerable<Entity> ListOfEntities { get; set; }
+        public ModelEnum Enum { get; set; }
 
         public string ExtraField { get; set; }
     }

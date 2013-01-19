@@ -38,6 +38,7 @@ namespace mab.lib.SimpleMapper.Tests
                     Entity2 = null,
                     ListOfStrings = null,
                     ListOfEntities = null,
+                    Enum = EntityEnum.Value3
                 },
                 new Entity { 
                     Int = 2,
@@ -57,6 +58,7 @@ namespace mab.lib.SimpleMapper.Tests
                     Entity2 = null,
                     ListOfStrings = null,
                     ListOfEntities = null,
+                    Enum = EntityEnum.Value2
                 }
             };
        
@@ -96,6 +98,7 @@ namespace mab.lib.SimpleMapper.Tests
             _testModel.ListOfStrings.ShouldEqual(null);
             _testModel.ListOfEntities.ShouldEqual(null);
             _testModel.ExtraField.ShouldEqual("NOT MODIFIED");
+            _testModel.Enum.ShouldEqual(ModelEnum.Value2);
         }
 
         [Test]
@@ -127,6 +130,7 @@ namespace mab.lib.SimpleMapper.Tests
             _testModel.ListOfStrings.ShouldEqual(null);
             _testModel.ListOfEntities.ShouldEqual(null);
             _testModel.ExtraField.ShouldEqual("NOT MODIFIED");
+            _testModel.Enum.ShouldEqual(ModelEnum.Value1);
         }
 
         [Test]
@@ -151,6 +155,7 @@ namespace mab.lib.SimpleMapper.Tests
             model.Entity2.ShouldEqual(null);
             model.ListOfStrings.ShouldEqual(null);
             model.ListOfEntities.ShouldEqual(null);
+            model.Enum.ShouldEqual(ModelEnum.Value2);
         }
 
         [Test]
@@ -182,6 +187,7 @@ namespace mab.lib.SimpleMapper.Tests
             model.Entity2.ShouldEqual(null);
             model.ListOfStrings.ShouldEqual(null);
             model.ListOfEntities.ShouldEqual(null);
+            model.Enum.ShouldEqual(ModelEnum.Value1);
         }
 
         [Test]
@@ -206,6 +212,7 @@ namespace mab.lib.SimpleMapper.Tests
             list[0].Entity2.ShouldEqual(null);
             list[0].ListOfStrings.ShouldEqual(null);
             list[0].ListOfEntities.ShouldEqual(null);
+            list[0].Enum.ShouldEqual(ModelEnum.Value3);
            
             list[1].Int.ShouldEqual(2);
             list[1].IntNullable.ShouldEqual(null);
@@ -224,6 +231,7 @@ namespace mab.lib.SimpleMapper.Tests
             list[1].Entity2.ShouldEqual(null);
             list[1].ListOfStrings.ShouldEqual(null);
             list[1].ListOfEntities.ShouldEqual(null);
+            list[1].Enum.ShouldEqual(ModelEnum.Value2);
         }
 
         [Test]
@@ -255,6 +263,7 @@ namespace mab.lib.SimpleMapper.Tests
             list[0].Entity2.ShouldEqual(null);
             list[0].ListOfStrings.ShouldEqual(null);
             list[0].ListOfEntities.ShouldEqual(null);
+            list[0].Enum.ShouldEqual(ModelEnum.Value1);
 
             list[1].Int.ShouldEqual(2);
             list[1].IntNullable.ShouldEqual(null);
@@ -273,6 +282,7 @@ namespace mab.lib.SimpleMapper.Tests
             list[1].Entity2.ShouldEqual(null);
             list[1].ListOfStrings.ShouldEqual(null);
             list[1].ListOfEntities.ShouldEqual(null);
+            list[1].Enum.ShouldEqual(ModelEnum.Value1);
         }
     }
 }
