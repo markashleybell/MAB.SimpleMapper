@@ -284,5 +284,45 @@ namespace mab.lib.SimpleMapper.Tests
             list[1].ListOfEntities.ShouldEqual(null);
             list[1].Enum.ShouldEqual(ModelEnum.Value1);
         }
+
+        [Test]
+        public void Map_Single_Proxy_Object_To_Existing_Object_By_Specification()
+        {
+            Mapper.AddMapping<Entity, Model>((s, d) =>
+            {
+                d.Int = (s.Int + 30);
+                d.String = "PROXIED: " + s.String;
+                d.String2 = "SHORT VALUE WAS: " + s.Short.ToString();
+            });
+
+            var proxy = new System.Data.Entity.DynamicProxies.ProxyEntity
+            {
+                Int = 20,
+                String = "TEST PROXIED ENTITY",
+                Short = 100
+            };
+
+            proxy.MapTo(_testModel);
+
+            _testModel.Int.ShouldEqual(50);
+            _testModel.IntNullable.ShouldEqual(null);
+            _testModel.String.ShouldEqual("PROXIED: TEST PROXIED ENTITY");
+            _testModel.String2.ShouldEqual("SHORT VALUE WAS: 100");
+            _testModel.Bool.ShouldEqual(false);
+            _testModel.BoolNullable.ShouldEqual(null);
+            _testModel.Decimal.ShouldEqual(0M);
+            _testModel.DecimalNullable.ShouldEqual(null);
+            _testModel.Double.ShouldEqual(0);
+            _testModel.DoubleNullable.ShouldEqual(null);
+            _testModel.Short.ShouldEqual((short)0);
+            _testModel.ShortNullable.ShouldEqual(null);
+            _testModel.Date.ShouldEqual(DateTime.MinValue);
+            _testModel.DateNullable.ShouldEqual(null);
+            _testModel.Entity2.ShouldEqual(null);
+            _testModel.ListOfStrings.ShouldEqual(null);
+            _testModel.ListOfEntities.ShouldEqual(null);
+            _testModel.ExtraField.ShouldEqual("NOT MODIFIED");
+            _testModel.Enum.ShouldEqual(ModelEnum.Value1);
+        }
     }
 }

@@ -79,7 +79,16 @@ namespace mab.lib.SimpleMapper
             where TSource : class
             where TDestination : class
         {
-            var key = Tuple.Create(typeof(TSource), typeof(TDestination));
+            var sourceType = typeof(TSource);
+            var destinationType = typeof(TDestination);
+
+            if (sourceType.Namespace.StartsWith("System.Data.Entity.DynamicProxies"))
+                sourceType = sourceType.BaseType;
+
+            if (destinationType.Namespace.StartsWith("System.Data.Entity.DynamicProxies"))
+                destinationType = destinationType.BaseType;
+
+            var key = Tuple.Create(sourceType, destinationType);
 
             var map = (_maps.ContainsKey(key)) ? _maps[key] as Action<TSource, TDestination> : null;
 

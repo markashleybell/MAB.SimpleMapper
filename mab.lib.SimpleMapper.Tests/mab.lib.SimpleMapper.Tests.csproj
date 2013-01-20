@@ -51,6 +51,7 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="Model.cs" />
     <Compile Include="ModelEnum.cs" />
+    <Compile Include="ProxyEntity.cs" />
     <Compile Include="Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
