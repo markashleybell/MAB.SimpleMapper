@@ -12,7 +12,7 @@
         <summary />
         <releaseNotes>3.0.0.0: Completely rewritten to allow custom mappings. 
 3.1.0.0: Support for enum properties
-3.2.0.0: Support for EF dynamic proxy mappings</releaseNotes>
+3.2.0.0: Support for EF dynamic proxy mappings
 3.2.0.1: Minor tweaks</releaseNotes>
         <copyright>2013 Mark Bell</copyright>
         <language>en-GB</language>
