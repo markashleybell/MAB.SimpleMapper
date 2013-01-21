@@ -1,6 +1,6 @@
 # SimpleMapper
 
-SimpleMapper is a lightweight object-to-object mapping library which helps you map the properties of one object (e.g a domain entity) to another (e.g a DTO or view model), without writing a ton of tedious mapping code.
+SimpleMapper is a lightweight object-to-object mapping library which helps you map the properties of one object (e.g. a domain entity) to another (e.g. a DTO or view model), without writing a ton of tedious mapping code.
 
 ## Usage
 
