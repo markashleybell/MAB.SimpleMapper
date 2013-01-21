@@ -69,7 +69,7 @@ If your source and destination types have properties which are _not_ identically
 
 In this case, you must explicitly specify what you want to happen for each property (like you would with manually-written mapping code), but the advantage here is that you only ever have to do it in one place.
 
-In an ASP.NET MVC project, the best place to set up custom mappings is in the Application_Start method of your Global.asax file:
+In an ASP.NET MVC project, the best place to set up custom mappings is in the `Application_Start` method of your Global.asax file:
 ```csharp
 protected void Application_Start()
 {
