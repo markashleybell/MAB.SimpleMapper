@@ -1,6 +1,6 @@
 # SimpleMapper
 
-SimpleMapper is a lightweight object-to-object mapping library which helps you map the properties of one object (e.g a domain entity) to another (e.g a DTO or view model), without writing a ton of tedious mapping code.
+SimpleMapper is a lightweight object-to-object mapping library which helps you map the properties of one object (e.g. a domain entity) to another (e.g. a DTO or view model), without writing a ton of tedious mapping code.
 
 ## Usage
 
@@ -46,14 +46,14 @@ If you already have an instance of the destination type which you wish to map to
 var entity = new Entity {
     ID = 1,
     Title = "MY TEST ENTITY",
-    Description = "DESCRIPTION GOES HERE",
+    Description = "ENTITY DESCRIPTION GOES HERE",
     EntityOnlyField = "ONLY IN ENTITY"
 };
 
 var model = new Model {
     ID = 2,
-    Title = "MY TEST ENTITY",
-    Description = "DESCRIPTION GOES HERE",
+    Title = "MY TEST MODEL",
+    Description = "MODEL DESCRIPTION GOES HERE",
     ModelOnlyField = "ONLY IN MODEL"
 };
 
@@ -62,14 +62,14 @@ var model = entity.MapTo(model);
 
 // model.ID = 1
 // model.Title = "MY TEST ENTITY"
-// model.Description = "DESCRIPTION GOES HERE"
+// model.Description = "ENTITY DESCRIPTION GOES HERE"
 // model.ModelOnlyField = "ONLY IN MODEL"
 ```
 If your source and destination types have properties which are _not_ identically named, you don't want to map all of the properties, or you want to perform some kind of transformation on property values during the mapping process, you can set up a custom mapping. 
 
 In this case, you must explicitly specify what you want to happen for each property (like you would with manually-written mapping code), but the advantage here is that you only ever have to do it in one place.
 
-In an ASP.NET MVC project, the best place to set up custom mappings is in the Application_Start method of your Global.asax file:
+In an ASP.NET MVC project, the best place to set up custom mappings is in the `Application_Start` method of your Global.asax file:
 ```csharp
 protected void Application_Start()
 {
