@@ -51,3 +51,4 @@ stylecop.*
 ~$*
 *.dbmdl
 _bin_deployableAssemblies/
+TestResult.xml

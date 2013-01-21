@@ -1,0 +1,2 @@
+packages\OpenCover.4.0.1128\OpenCover.Console.exe -target:"packages\NUnit.Runners.2.6.2\tools\nunit-console.exe" -targetargs:"/nologo /noshadow /out:\"reports\testresults.xml\" mab.lib.SimpleMapper.Tests\bin\Debug\mab.lib.SimpleMapper.Tests.dll" - filter:"+[*]* -[mab.lib.SimpleMapper.Tests*]*" -register:user -output:"reports\results.xml"
+packages\ReportGenerator.1.7.2.0\ReportGenerator.exe -reports:"reports\results.xml" -targetdir:"reports"
