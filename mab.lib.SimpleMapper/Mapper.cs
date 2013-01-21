@@ -21,8 +21,13 @@ namespace mab.lib.SimpleMapper
 {
     public static class Mapper
     {
-        // Tuple-keyed dictionary to allow us to look up custom mappings 
-        // based on the combination of source and destination type
+        // If the type is in this namespace, it's probably an Entity Framework dynamic proxy, so 
+        // won't match any custom mappings keyed on the base type. This lets us test for that.
+        private const string _EF_DYNAMIC_PROXY_PREFIX = "System.Data.Entity.DynamicProxies";
+
+        // Tuple-keyed dictionary to allow us to look up custom mappings based on the combination 
+        // of source and destination type. This also allows us to set up distinct mappings for 
+        // mapping to and from the same type
         private static Dictionary<Tuple<Type, Type>, object> _maps = new Dictionary<Tuple<Type, Type>, object>();
 
         /// <summary>
@@ -35,6 +40,7 @@ namespace mab.lib.SimpleMapper
             where TSource : class
             where TDestination : class
         {
+            // Add the mapping keyed on a combination of the source and destination types
             _maps.Add(Tuple.Create(typeof(TSource), typeof(TDestination)), map);
         }
 
@@ -63,6 +69,7 @@ namespace mab.lib.SimpleMapper
             // Create a new instance of the destination type
             var destination = Activator.CreateInstance<TDestination>();
 
+            // Map the source object to the new destination instance
             Map<TSource, TDestination>(source, destination);
 
             return destination;
@@ -82,14 +89,18 @@ namespace mab.lib.SimpleMapper
             var sourceType = typeof(TSource);
             var destinationType = typeof(TDestination);
 
-            if (sourceType.Namespace.StartsWith("System.Data.Entity.DynamicProxies"))
+            // If either type is an Entity Framework dynamic proxy, we need to get the base type
+            // so that the key matches any custom mappings set up for it
+            if (sourceType.Namespace.StartsWith(_EF_DYNAMIC_PROXY_PREFIX))
                 sourceType = sourceType.BaseType;
 
-            if (destinationType.Namespace.StartsWith("System.Data.Entity.DynamicProxies"))
+            if (destinationType.Namespace.StartsWith(_EF_DYNAMIC_PROXY_PREFIX))
                 destinationType = destinationType.BaseType;
 
+            // Create a composite key from the source and destination types
             var key = Tuple.Create(sourceType, destinationType);
 
+            // Look for a custom mapping for this source/destination type combination
             var map = (_maps.ContainsKey(key)) ? _maps[key] as Action<TSource, TDestination> : null;
 
             if (map == null)
