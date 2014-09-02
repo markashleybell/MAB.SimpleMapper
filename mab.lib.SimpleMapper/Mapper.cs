@@ -168,16 +168,19 @@ namespace mab.lib.SimpleMapper
         /// <param name="destination">Destination object</param>
         public static void MapTo(this object source, object destination)
         {
-            // Use reflection to get the Map<TSource, TDestination>(TSource source, TDestination destination) method
-            MethodInfo method = typeof(Mapper).GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
-                                              .Where(x => x.Name == "Map" && x.GetParameters().Length == 2)
-                                              .First();
+            if (source != null)
+            {
+                // Use reflection to get the Map<TSource, TDestination>(TSource source, TDestination destination) method
+                MethodInfo method = typeof(Mapper).GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
+                                                  .Where(x => x.Name == "Map" && x.GetParameters().Length == 2)
+                                                  .First();
 
-            // Get the types of the source and destination objects and pass them into the method as type parameters
-            MethodInfo generic = method.MakeGenericMethod(new Type[] { source.GetType(), destination.GetType() });
+                // Get the types of the source and destination objects and pass them into the method as type parameters
+                MethodInfo generic = method.MakeGenericMethod(new Type[] { source.GetType(), destination.GetType() });
 
-            // Invoke the Map method, passing in the source and destination objects as method parameters
-            generic.Invoke(null, new object[] { source, destination });
+                // Invoke the Map method, passing in the source and destination objects as method parameters
+                generic.Invoke(null, new object[] { source, destination });
+            }
         }
 
         /// <summary>
@@ -189,6 +192,9 @@ namespace mab.lib.SimpleMapper
         public static TDestination MapTo<TDestination>(this object source)
             where TDestination : class
         {
+            if (source == null)
+                return null;
+
             // Use reflection to get the Map<TSource, TDestination>(TSource source) method
             MethodInfo method = typeof(Mapper).GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
                                               .Where(x => x.Name == "Map" && x.GetParameters().Length == 1)
@@ -212,6 +218,9 @@ namespace mab.lib.SimpleMapper
         public static List<TDestination> MapToList<TDestination>(this object source)
             where TDestination : class
         {
+            if (source == null)
+                return null;
+
             // Use reflection to get the MapList<TSource, TDestination>(TSource source) method
             MethodInfo method = typeof(Mapper).GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
                                               .Where(x => x.Name == "MapList" && x.GetParameters().Length == 1)

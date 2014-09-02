@@ -13,6 +13,8 @@ namespace mab.lib.SimpleMapper.Tests
         private List<Entity>_testEntities;
         private Entity2 _testEntity2;
         private Model _testModel;
+        private Entity _testNullEntity;
+        private List<Entity>_testNullEntities;
 
         [SetUp]
         public void Setup()
@@ -73,6 +75,8 @@ namespace mab.lib.SimpleMapper.Tests
                 String = "TEST MODEL",
                 ExtraField = "NOT MODIFIED"
             };
+
+            _testNullEntity = null;
         }
 
         [Test]
@@ -323,6 +327,47 @@ namespace mab.lib.SimpleMapper.Tests
             _testModel.ListOfEntities.ShouldEqual(null);
             _testModel.ExtraField.ShouldEqual("NOT MODIFIED");
             _testModel.Enum.ShouldEqual(ModelEnum.Value1);
+        }
+
+        [Test]
+        public void Map_NULL_Object_To_Existing_Object()
+        {
+            _testNullEntity.MapTo(_testModel);
+
+            _testModel.Int.ShouldEqual(10);
+            _testModel.String.ShouldEqual("TEST MODEL");
+            _testModel.String2.ShouldEqual(null);
+            _testModel.Bool.ShouldEqual(false);
+            _testModel.BoolNullable.ShouldEqual(null);
+            _testModel.Decimal.ShouldEqual(0M);
+            _testModel.DecimalNullable.ShouldEqual(null);
+            _testModel.Double.ShouldEqual(0);
+            _testModel.DoubleNullable.ShouldEqual(null);
+            _testModel.Short.ShouldEqual((short)0);
+            _testModel.ShortNullable.ShouldEqual(null);
+            _testModel.Date.ShouldEqual(DateTime.MinValue);
+            _testModel.DateNullable.ShouldEqual(null);
+            _testModel.Entity2.ShouldEqual(null);
+            _testModel.ListOfStrings.ShouldEqual(null);
+            _testModel.ListOfEntities.ShouldEqual(null);
+            _testModel.ExtraField.ShouldEqual("NOT MODIFIED");
+            _testModel.Enum.ShouldEqual(ModelEnum.Value1);
+        }
+
+        [Test]
+        public void Map_NULL_Object_To_New_Object()
+        {
+            var model = _testNullEntity.MapTo<Model>();
+
+            model.ShouldEqual(null);
+        }
+
+        [Test]
+        public void Map_NULL_Object_To_New_List()
+        {
+            var model = _testNullEntities.MapToList<Model>();
+
+            model.ShouldEqual(null);
         }
     }
 }
