@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2012 for Windows Desktop
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30723.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mab.lib.SimpleMapper", "mab.lib.SimpleMapper\mab.lib.SimpleMapper.csproj", "{89DA263A-6FFB-4201-90B0-EA6D793558F0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mab.lib.SimpleMapper.Tests", "mab.lib.SimpleMapper.Tests\mab.lib.SimpleMapper.Tests.csproj", "{380A3A0C-6AAA-44E3-B8FA-C37765F01CBE}"

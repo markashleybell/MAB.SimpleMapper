@@ -1,0 +1,14 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace mab.lib.SimpleMapper.Tests
+{
+    public class TestDbEntityDTO
+    {
+        public int TestDbEntityID { get; set; }
+        public string Text1 { get; set; }
+        public decimal Price { get; set; }
+    }
+}
