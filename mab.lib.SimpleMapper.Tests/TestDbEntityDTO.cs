@@ -10,5 +10,8 @@ namespace mab.lib.SimpleMapper.Tests
         public int TestDbEntityID { get; set; }
         public string Text1 { get; set; }
         public decimal Price { get; set; }
+
+        public int? Child_TestDbChildEntityID { get; set; }
+        public TestDbChildEntityDTO Child { get; set; }
     }
 }

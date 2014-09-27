@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>mab.lib.SimpleMapper</id>
-        <version>3.3.0.0</version>
+        <version>3.3.0.1</version>
         <title />
         <authors>Mark Bell</authors>
         <owners />
@@ -15,7 +15,8 @@
 3.2.0.0: Support for EF dynamic proxy mappings
 3.2.0.1: Minor tweaks
 3.2.0.2: Handle null source objects
-3.3.0.0: Dynamic projections</releaseNotes>
+3.3.0.0: Dynamic projections
+3.3.0.1: Exclude reference types from projections</releaseNotes>
         <copyright>2013 Mark Bell</copyright>
         <language>en-GB</language>
     </metadata>

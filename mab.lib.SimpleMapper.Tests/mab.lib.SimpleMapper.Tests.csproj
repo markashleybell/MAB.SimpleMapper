@@ -72,6 +72,8 @@
     <Compile Include="Model.cs" />
     <Compile Include="ModelEnum.cs" />
     <Compile Include="ProxyEntity.cs" />
+    <Compile Include="TestDbChildEntity.cs" />
+    <Compile Include="TestDbChildEntityDTO.cs" />
     <Compile Include="TestDbContext.cs" />
     <Compile Include="TestDbEntity.cs" />
     <Compile Include="TestDbEntityDTO.cs" />

@@ -12,20 +12,35 @@ namespace mab.lib.SimpleMapper.Tests
     {
         protected override void Seed(TestDbContext context)
         {
+            var childEntities = new List<TestDbChildEntity> {
+                new TestDbChildEntity {
+                    Name = "CHILD 1"
+                },
+                new TestDbChildEntity {
+                    Name = "CHILD 2"
+                }
+            };
+
+            context.TestDbChildEntities.AddRange(childEntities);
+
+            context.SaveChanges();
+
             context.TestDbEntities.AddRange(new List<TestDbEntity> {
                 new TestDbEntity {
                     Text1 = "TEST 1 TEXT 1",
                     Text2 = "TEST 1 TEXT 2",
                     Text3 = "TEST 1 TEXT 3",
                     Price = 231.00M,
-                    Created = DateTime.Now
+                    Created = DateTime.Now,
+                    Child = childEntities[0]
                 },
                 new TestDbEntity {
                     Text1 = "TEST 2 TEXT 1",
                     Text2 = "TEST 2 TEXT 2",
                     Text3 = "TEST 2 TEXT 3",
                     Price = 12.00M,
-                    Created = DateTime.Now
+                    Created = DateTime.Now,
+                    Child = childEntities[1]
                 }
             });
 
@@ -60,6 +75,8 @@ namespace mab.lib.SimpleMapper.Tests
             using(var _db = new TestDbContext())
             {
                 var entities = _db.TestDbEntities.OrderBy(x => x.TestDbEntityID).AsQueryable();
+
+                var tmp = entities.ToList();
 
                 var log = new List<string>();
 

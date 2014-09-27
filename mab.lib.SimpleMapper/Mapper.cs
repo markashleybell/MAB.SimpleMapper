@@ -268,7 +268,7 @@ namespace mab.lib.SimpleMapper
                 selectExpression = Expression.Lambda<Func<TSource, TDestination>>(
                     Expression.MemberInit(
                         Expression.New(typeof(TDestination)),
-                        destinationMembers.Select(dest => Expression.Bind(dest,
+                        destinationMembers.Where(p => p.PropertyType.Name == "String" || p.PropertyType.IsValueType).Select(dest => Expression.Bind(dest,
                             Expression.Property(
                                 parameterExpression,
                                 sourceMembers.First(pi => pi.Name == dest.Name)
