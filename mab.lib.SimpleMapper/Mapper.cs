@@ -16,6 +16,7 @@ using System.Text;
 using System.Collections;
 using System.Text.RegularExpressions;
 using System.Reflection;
+using System.Linq.Expressions;
 
 namespace mab.lib.SimpleMapper
 {
@@ -29,6 +30,9 @@ namespace mab.lib.SimpleMapper
         // of source and destination type. This also allows us to set up distinct mappings for 
         // mapping to and from the same type
         private static Dictionary<Tuple<Type, Type>, object> _maps = new Dictionary<Tuple<Type, Type>, object>();
+
+        // Tuple-keyed dictionary to allow us to look up cached projections based on the combination of source and destination type.
+        private static Dictionary<Tuple<Type, Type>, object> _projectionExpressions = new Dictionary<Tuple<Type, Type>, object>();
 
         /// <summary>
         /// Add a custom mapping between a particular source and destination type
@@ -233,6 +237,51 @@ namespace mab.lib.SimpleMapper
             // Invoke the MapList method, passing in the source list as a method parameter, and 
             // return the resulting list of objects of type TDestination
             return (List<TDestination>)generic.Invoke(null, new object[] { source });
+        }
+
+        /// <summary>
+        /// Dynamically create a projection from one type to another for LINQ querying
+        /// </summary>
+        /// <remarks>Code adapted from: http://lostechies.com/jimmybogard/2011/02/09/autoprojecting-linq-queries/</remarks>
+        /// <typeparam name="TSource">Source type</typeparam>
+        /// <typeparam name="TDestination">Destination type</typeparam>
+        /// <param name="source">Source IQueryable</param>
+        /// <returns>New IQueryable of type Destination</returns>
+        public static IQueryable<TDestination> Project<TSource, TDestination>(this IQueryable<TSource> source) 
+            where TSource : class
+            where TDestination : class
+        {
+            // Create a composite key from the source and destination types
+            var key = Tuple.Create(typeof(TSource), typeof(TDestination));
+
+            // Look for a cached select expression for this source/destination type combination
+            var selectExpression = (_projectionExpressions.ContainsKey(key)) ? _projectionExpressions[key] as Expression<Func<TSource, TDestination>> : null;
+
+            if (selectExpression == null)
+            {
+                var sourceMembers = typeof(TSource).GetProperties();
+                var destinationMembers = typeof(TDestination).GetProperties();
+
+                var parameterExpression = Expression.Parameter(typeof(TSource), "src");
+
+                // Create an expression tree which selects only the properties present on TDestination
+                selectExpression = Expression.Lambda<Func<TSource, TDestination>>(
+                    Expression.MemberInit(
+                        Expression.New(typeof(TDestination)),
+                        destinationMembers.Select(dest => Expression.Bind(dest,
+                            Expression.Property(
+                                parameterExpression,
+                                sourceMembers.First(pi => pi.Name == dest.Name)
+                            )
+                        )).ToArray()
+                    ),
+                    parameterExpression
+                );
+
+                _projectionExpressions.Add(Tuple.Create(typeof(TSource), typeof(TDestination)), selectExpression);
+            }
+
+            return source.Select(selectExpression);
         }
     }
 }
