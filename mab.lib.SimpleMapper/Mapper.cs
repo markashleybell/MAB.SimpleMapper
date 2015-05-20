@@ -240,6 +240,32 @@ namespace mab.lib.SimpleMapper
         }
 
         /// <summary>
+        /// Map a list of source objects to a new list of objects of type TDestination
+        /// </summary>
+        /// <typeparam name="TDestination">Destination type</typeparam>
+        /// <param name="source">Source list</param>
+        /// <returns>New list of objects of type TDestination</returns>
+        public static IEnumerable<TDestination> MapToEnumerable<TDestination>(this object source)
+            where TDestination : class
+        {
+            if (source == null)
+                return null;
+
+            // Use reflection to get the MapList<TSource, TDestination>(TSource source) method
+            MethodInfo method = typeof(Mapper).GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
+                                              .Where(x => x.Name == "MapList" && x.GetParameters().Length == 1)
+                                              .First();
+
+            // Get the type argument of the source list and pass it into the method as a type parameter,
+            // along with the type of the new destination list
+            MethodInfo generic = method.MakeGenericMethod(new Type[] { source.GetType().GetGenericArguments()[0], typeof(TDestination) });
+
+            // Invoke the MapList method, passing in the source list as a method parameter, and 
+            // return the resulting list of objects of type TDestination
+            return (IEnumerable<TDestination>)generic.Invoke(null, new object[] { source });
+        }
+
+        /// <summary>
         /// Dynamically create a projection from one type to another for LINQ querying
         /// </summary>
         /// <remarks>Code adapted from: http://lostechies.com/jimmybogard/2011/02/09/autoprojecting-linq-queries/</remarks>
