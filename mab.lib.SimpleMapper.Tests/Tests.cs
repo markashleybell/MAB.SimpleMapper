@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using NUnit.Framework;
 using System.Globalization;
+using System.Reflection;
 
 namespace mab.lib.SimpleMapper.Tests
 {
@@ -14,7 +15,7 @@ namespace mab.lib.SimpleMapper.Tests
         private Entity2 _testEntity2;
         private Model _testModel;
         private Entity _testNullEntity;
-        private List<Entity>_testNullEntities;
+        private List<Entity> _testNullEntities;
 
         [SetUp]
         public void Setup()
@@ -471,6 +472,104 @@ namespace mab.lib.SimpleMapper.Tests
             var model = _testNullEntities.MapToList<Model>();
 
             model.ShouldEqual(null);
+        }
+
+        [Test]
+        public void Map_Single_Object_To_New_Object_With_Private_Setters_By_Convention()
+        {
+            var entity = new EntityPrivateProperties { 
+                ID = 123,
+                Name = "John Test",
+                Email = "john@test.com"
+            };
+
+            var model = entity.MapTo<ModelPrivateProperties>();
+
+            model.ID.ShouldEqual(123);
+            model.Name.ShouldEqual("John Test");
+            model.Email.ShouldEqual("john@test.com");
+        }
+
+        [Test]
+        public void Map_Single_Object_To_New_Object_With_Private_Setters_By_Specification()
+        {
+            Mapper.AddMapping<EntityPrivateProperties, ModelPrivateProperties>((s, d) => {
+                var destProperties = d.GetType().GetProperties();
+                destProperties.First(x => x.Name == "ID").SetValue(d, s.ID, null);
+                destProperties.First(x => x.Name == "Name").SetValue(d, s.Name, null);
+                destProperties.First(x => x.Name == "Email").SetValue(d, s.Email, null);
+            });
+
+            var entity = new EntityPrivateProperties { 
+                ID = 123,
+                Name = "John Test",
+                Email = "john@test.com"
+            };
+
+            var model = entity.MapTo<ModelPrivateProperties>();
+
+            model.ID.ShouldEqual(123);
+            model.Name.ShouldEqual("John Test");
+            model.Email.ShouldEqual("john@test.com");
+        }
+
+        [Test]
+        public void Map_List_Of_Object_To_New_List_Of_Object_With_Private_Setters_By_Convention()
+        {
+            var entities = new List<EntityPrivateProperties> {
+                new EntityPrivateProperties {
+                    ID = 123,
+                    Name = "John Test",
+                    Email = "john@test.com"
+                },
+                new EntityPrivateProperties {
+                    ID = 456,
+                    Name = "Jane Test",
+                    Email = "jane@test.com"
+                },
+            };
+
+            var models = entities.MapToList<ModelPrivateProperties>();
+
+            models[0].ID.ShouldEqual(123);
+            models[0].Name.ShouldEqual("John Test");
+            models[0].Email.ShouldEqual("john@test.com");
+            models[1].ID.ShouldEqual(456);
+            models[1].Name.ShouldEqual("Jane Test");
+            models[1].Email.ShouldEqual("jane@test.com");
+        }
+
+        [Test]
+        public void Map_List_Of_Object_To_New_List_Of_Object_With_Private_Setters_By_Specification()
+        {
+            Mapper.AddMapping<EntityPrivateProperties, ModelPrivateProperties>((s, d) => {
+                var destProperties = d.GetType().GetProperties();
+                destProperties.First(x => x.Name == "ID").SetValue(d, s.ID, null);
+                destProperties.First(x => x.Name == "Name").SetValue(d, s.Name, null);
+                destProperties.First(x => x.Name == "Email").SetValue(d, s.Email, null);
+            });
+
+            var entities = new List<EntityPrivateProperties> {
+                new EntityPrivateProperties {
+                    ID = 123,
+                    Name = "John Test",
+                    Email = "john@test.com"
+                },
+                new EntityPrivateProperties {
+                    ID = 456,
+                    Name = "Jane Test",
+                    Email = "jane@test.com"
+                },
+            };
+
+            var models = entities.MapToList<ModelPrivateProperties>();
+
+            models[0].ID.ShouldEqual(123);
+            models[0].Name.ShouldEqual("John Test");
+            models[0].Email.ShouldEqual("john@test.com");
+            models[1].ID.ShouldEqual(456);
+            models[1].Name.ShouldEqual("Jane Test");
+            models[1].Email.ShouldEqual("jane@test.com");
         }
     }
 }
