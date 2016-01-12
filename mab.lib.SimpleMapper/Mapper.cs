@@ -34,6 +34,12 @@ namespace mab.lib.SimpleMapper
         // Tuple-keyed dictionary to allow us to look up cached projections based on the combination of source and destination type.
         private static Dictionary<Tuple<Type, Type>, object> _projectionExpressions = new Dictionary<Tuple<Type, Type>, object>();
 
+        // Uppercase and remove underscores from property names to allow (sort of) fuzzy matching
+        private static string GetNormalisedPropertyName(string propertyName)
+        {
+            return Regex.Replace(propertyName.ToUpperInvariant(), "_", "");
+        }
+
         /// <summary>
         /// Add a custom mapping between a particular source and destination type
         /// </summary>
@@ -118,7 +124,7 @@ namespace mab.lib.SimpleMapper
                 {
                     // Try and find a matching property of the destination type (match on name and type)
                     var destinationProperty = destinationProperties.FirstOrDefault(x => {
-                        return x.Name.Equals(property.Name, StringComparison.OrdinalIgnoreCase)
+                        return GetNormalisedPropertyName(x.Name).Equals(GetNormalisedPropertyName(property.Name))
                             && (x.PropertyType == property.PropertyType) || (x.PropertyType.IsEnum && property.PropertyType.IsEnum)
                             && x.CanWrite;
                     });
