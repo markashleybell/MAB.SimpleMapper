@@ -51,8 +51,8 @@ namespace mab.lib.SimpleMapper.Tests
     [TestFixture]
     public class IntegrationTests
     {
-        [TestFixtureSetUp]
-        public void TestFixtureSetUp()
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
         {
             Database.SetInitializer<TestDbContext>(new DbInitializer());
 
