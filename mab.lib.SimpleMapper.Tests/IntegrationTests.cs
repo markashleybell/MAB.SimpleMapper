@@ -70,37 +70,6 @@ namespace mab.lib.SimpleMapper.Tests
         }
 
         [Test]
-        public void Projection_Only_Selects_Fields_In_DTO()
-        {
-            using(var _db = new TestDbContext())
-            {
-                var entities = _db.TestDbEntities.OrderBy(x => x.TestDbEntityID).AsQueryable();
-
-                var tmp = entities.ToList();
-
-                var log = new List<string>();
-
-                _db.Database.Log = s => log.Add(s);
-
-                var dtos = entities.Project<TestDbEntity, TestDbEntityDTO>().ToList();
-
-                var selectSql = log.FirstOrDefault(x => x.ToLower().Contains("select"));
-
-                selectSql.ToLower().IndexOf("text2").ShouldEqual(-1);
-                selectSql.ToLower().IndexOf("text3").ShouldEqual(-1);
-                selectSql.ToLower().IndexOf("created").ShouldEqual(-1);
-
-                dtos.Count.ShouldEqual(2);
-                dtos[0].TestDbEntityID.ShouldEqual(1);
-                dtos[0].Text1.ShouldEqual("TEST 1 TEXT 1");
-                dtos[0].Price.ShouldEqual(231.00M);
-                dtos[1].TestDbEntityID.ShouldEqual(2);
-                dtos[1].Text1.ShouldEqual("TEST 2 TEXT 1");
-                dtos[1].Price.ShouldEqual(12.00M);
-            }
-        }
-
-        [Test]
         public void Map_Single_Proxy_Object_To_New_Object_By_Convention()
         {
             using (var _db = new TestDbContext())
