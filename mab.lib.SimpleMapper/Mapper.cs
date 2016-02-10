@@ -31,9 +31,6 @@ namespace mab.lib.SimpleMapper
         // mapping to and from the same type
         private static Dictionary<Tuple<Type, Type>, object> _maps = new Dictionary<Tuple<Type, Type>, object>();
 
-        // Tuple-keyed dictionary to allow us to look up cached projections based on the combination of source and destination type.
-        private static Dictionary<Tuple<Type, Type>, object> _projectionExpressions = new Dictionary<Tuple<Type, Type>, object>();
-
         // Uppercase and remove underscores from property names to allow (sort of) fuzzy matching
         private static string GetNormalisedPropertyName(string propertyName)
         {
