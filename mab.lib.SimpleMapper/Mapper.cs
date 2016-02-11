@@ -130,7 +130,7 @@ namespace mab.lib.SimpleMapper
                 var propertyAssignments = destinationProperties.Where(isMappableProperty).Select(p => Expression.Assign(
                     Expression.Property(destinationInstance, p.Name),
                     p.PropertyType.IsEnum ? (Expression)Expression.Convert(Expression.Property(sourceInstance, p.Name), p.PropertyType)
-                                            : Expression.Property(sourceInstance, p.Name)
+                                          : Expression.Property(sourceInstance, p.Name)
                 )); 
                 
                 // Create an expression containing all our property assignments and passing in the
