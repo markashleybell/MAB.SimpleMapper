@@ -108,41 +108,46 @@ namespace mab.lib.SimpleMapper
             var key = Tuple.Create(sourceType, destinationType);
 
             // Look for a custom mapping for this source/destination type combination
-            var map = (_maps.ContainsKey(key)) ? _maps[key] as Action<TSource, TDestination> : null;
+            Action<TSource, TDestination> map = (_maps.ContainsKey(key)) ? _maps[key] as Action<TSource, TDestination> : null;
 
             if (map == null)
             {
-                // There's no specific mapping set up, so we'll just do it by convention
+                // There's no specific mapping set up, so we'll create one by convention
                 var sourceProperties = source.GetType().GetProperties();
                 var destinationProperties = destination.GetType().GetProperties();
+                
+                // Test to determine whether a property of the destination type can/should be assigned to
+                Func<PropertyInfo, bool> isMappableProperty = dst => dst.CanWrite 
+                                                                  && sourceProperties.Any(src => GetNormalisedPropertyName(dst.Name).Equals(GetNormalisedPropertyName(src.Name))
+                                                                                              && ((dst.PropertyType == src.PropertyType) || (dst.PropertyType.IsEnum && src.PropertyType.IsEnum)));
 
-                // Loop through the properties of the source object
-                foreach (var property in sourceProperties)
-                {
-                    // Try and find a matching property of the destination type (match on name and type)
-                    var destinationProperty = destinationProperties.FirstOrDefault(x => {
-                        return GetNormalisedPropertyName(x.Name).Equals(GetNormalisedPropertyName(property.Name))
-                            && (x.PropertyType == property.PropertyType) || (x.PropertyType.IsEnum && property.PropertyType.IsEnum)
-                            && x.CanWrite;
-                    });
+                // Create expression parameter references for the source and destination instance parameters
+                var sourceInstance = Expression.Parameter(typeof(TSource), "source");
+                var destinationInstance = Expression.Parameter(typeof(TDestination), "destination");
 
-                    // If the destination type has a matching property
-                    if (destinationProperty != null)
-                    {
-                        // Update the destination property with the value of the source property
-                        var val = property.GetValue(source, null);
-                        destinationProperty.SetValue(destination, val, null);
-                    }
-                }
+                // Get a list of source -> destination property assignment expressions
+                // Note that if the property is an enum, a converted value is assigned rather than a direct property value
+                var propertyAssignments = destinationProperties.Where(isMappableProperty).Select(p => Expression.Assign(
+                    Expression.Property(destinationInstance, p.Name),
+                    p.PropertyType.IsEnum ? (Expression)Expression.Convert(Expression.Property(sourceInstance, p.Name), p.PropertyType)
+                                            : Expression.Property(sourceInstance, p.Name)
+                )); 
+                
+                // Create an expression containing all our property assignments and passing in the
+                // source and destination object instances as arguments
+                var expression = Expression.Lambda<Action<TSource, TDestination>>(
+                    Expression.Block(propertyAssignments), 
+                    sourceInstance, 
+                    destinationInstance
+                );
 
-                // TODO: Generate delegate code using CSharpCodeProvider and add the delegate to custom mappings collection
-                // This will avoid reflection on every call to the mapper
+                // Compile the assignment expression and cache the resulting delegate in the mappings dictionary
+                map = expression.Compile();
+                AddMapping<TSource, TDestination>(map);
             }
-            else
-            {
-                // Map using the stored delegate for this source/destination type combination
-                map(source, destination);
-            }
+
+            // Map using the stored delegate for this source/destination type combination
+            map(source, destination);
         }
 
         /// <summary>
