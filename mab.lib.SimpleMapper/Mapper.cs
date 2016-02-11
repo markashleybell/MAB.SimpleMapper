@@ -98,10 +98,10 @@ namespace mab.lib.SimpleMapper
 
             // If either type is an Entity Framework dynamic proxy, we need to get the base type
             // so that the key matches any custom mappings set up for it
-            if (sourceType.Namespace.StartsWith(_EF_DYNAMIC_PROXY_PREFIX))
+            if (sourceType.Namespace != null && sourceType.Namespace.StartsWith(_EF_DYNAMIC_PROXY_PREFIX))
                 sourceType = sourceType.BaseType;
 
-            if (destinationType.Namespace.StartsWith(_EF_DYNAMIC_PROXY_PREFIX))
+            if (destinationType.Namespace != null && destinationType.Namespace.StartsWith(_EF_DYNAMIC_PROXY_PREFIX))
                 destinationType = destinationType.BaseType;
 
             // Create a composite key from the source and destination types
