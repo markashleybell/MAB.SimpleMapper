@@ -17,6 +17,7 @@ using System.Collections;
 using System.Text.RegularExpressions;
 using System.Reflection;
 using System.Linq.Expressions;
+using System.Collections.Concurrent;
 
 namespace mab.lib.SimpleMapper
 {
@@ -29,7 +30,7 @@ namespace mab.lib.SimpleMapper
         // Tuple-keyed dictionary to allow us to look up custom mappings based on the combination 
         // of source and destination type. This also allows us to set up distinct mappings for 
         // mapping to and from the same type
-        private static Dictionary<Tuple<Type, Type>, object> _maps = new Dictionary<Tuple<Type, Type>, object>();
+        private static ConcurrentDictionary<Tuple<Type, Type>, object> _maps = new ConcurrentDictionary<Tuple<Type, Type>, object>();
 
         // Uppercase and remove underscores from property names to allow (sort of) fuzzy matching
         private static string GetNormalisedPropertyName(string propertyName)
@@ -48,7 +49,7 @@ namespace mab.lib.SimpleMapper
             where TDestination : class
         {
             // Add the mapping keyed on a combination of the source and destination types
-            _maps.Add(Tuple.Create(typeof(TSource), typeof(TDestination)), map);
+            _maps.TryAdd(Tuple.Create(typeof(TSource), typeof(TDestination)), map);
         }
 
         /// <summary>
