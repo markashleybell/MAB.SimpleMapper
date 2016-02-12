@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>mab.lib.SimpleMapper</id>
-        <version>3.4.0.0</version>
+        <version>3.5.0.0</version>
         <title />
         <authors>Mark Bell</authors>
         <owners />
@@ -10,14 +10,15 @@
         <requireLicenseAcceptance>true</requireLicenseAcceptance>
         <description>A lightweight object mapping library</description>
         <summary />
-        <releaseNotes>3.0.0.0: Completely rewritten to allow custom mappings. 
+        <releaseNotes>3.0.0.0: Completely rewritten to allow custom mappings
 3.1.0.0: Support for enum properties
 3.2.0.0: Support for EF dynamic proxy mappings
 3.2.0.1: Minor tweaks
 3.2.0.2: Handle null source objects
 3.3.0.0: Dynamic projections
 3.3.0.1: Exclude reference types from projections
-3.4.0.0: Support for IEnumerable mapping</releaseNotes>
+3.4.0.0: Support for IEnumerable mapping
+3.5.0.0: Cache delegates for convention-based mappings</releaseNotes>
         <copyright>2013 Mark Bell</copyright>
         <language>en-GB</language>
     </metadata>
