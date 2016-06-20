@@ -198,3 +198,7 @@ FakesAssemblies/
 # Opencover reports
 TestResult.xml
 reports
+
+# NuGet package output
+dist
+publish.cmd
