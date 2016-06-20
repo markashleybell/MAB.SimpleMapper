@@ -56,7 +56,7 @@ namespace MAB.SimpleMapper
         /// <typeparam name="TDestination">Destination type</typeparam>
         /// <param name="source">Source object</param>
         /// <returns>New object of type TDestination</returns>
-        private static TDestination Map<TSource, TDestination>(TSource source)
+        private static TDestination MapNew<TSource, TDestination>(TSource source, params object[] constructorParameters)
             where TSource : class
             where TDestination : class
         {
@@ -64,10 +64,12 @@ namespace MAB.SimpleMapper
                 return default(TDestination);
 
             // Create a new instance of the destination type
-            var destination = Activator.CreateInstance<TDestination>();
+            var destination = (constructorParameters == null || constructorParameters.Length == 0) 
+                            ? Activator.CreateInstance<TDestination>()
+                            : (TDestination)Activator.CreateInstance(typeof(TDestination), constructorParameters);
 
             // Map the source object to the new destination instance
-            Map<TSource, TDestination>(source, destination);
+            MapExisting<TSource, TDestination>(source, destination);
 
             return destination;
         }
@@ -79,7 +81,7 @@ namespace MAB.SimpleMapper
         /// <typeparam name="TDestination">Destination type</typeparam>
         /// <param name="source">Source object</param>
         /// <param name="destination">Destination object</param>
-        private static void Map<TSource, TDestination>(TSource source, TDestination destination)
+        private static void MapExisting<TSource, TDestination>(TSource source, TDestination destination)
             where TSource : class
             where TDestination : class
         {
@@ -147,7 +149,7 @@ namespace MAB.SimpleMapper
         /// <typeparam name="TDestination">Destination type</typeparam>
         /// <param name="source">Source list</param>
         /// <returns>New list of objects of type TDestination</returns>
-        private static List<TDestination> MapList<TSource, TDestination>(List<TSource> source)
+        private static List<TDestination> MapList<TSource, TDestination>(List<TSource> source, params object[] constructorParameters)
             where TSource : class
             where TDestination : class
         {
@@ -158,7 +160,7 @@ namespace MAB.SimpleMapper
             var destination = new List<TDestination>();
 
             foreach (var item in source)
-                destination.Add(Map<TSource, TDestination>(item));
+                destination.Add(MapNew<TSource, TDestination>(item, constructorParameters));
 
             return destination;
         }
@@ -174,7 +176,7 @@ namespace MAB.SimpleMapper
             {
                 // Use reflection to get the Map<TSource, TDestination>(TSource source, TDestination destination) method
                 MethodInfo method = typeof(Mapper).GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
-                                                  .Where(x => x.Name == "Map" && x.GetParameters().Length == 2)
+                                                  .Where(x => x.Name == "MapExisting")
                                                   .First();
 
                 // Get the types of the source and destination objects and pass them into the method as type parameters
@@ -191,7 +193,7 @@ namespace MAB.SimpleMapper
         /// <typeparam name="TDestination">Destination type</typeparam>
         /// <param name="source">Source object</param>
         /// <returns>New object of type TDestination</returns>
-        public static TDestination MapTo<TDestination>(this object source)
+        public static TDestination MapTo<TDestination>(this object source, params object[] constructorParameters)
             where TDestination : class
         {
             if (source == null)
@@ -199,7 +201,7 @@ namespace MAB.SimpleMapper
 
             // Use reflection to get the Map<TSource, TDestination>(TSource source) method
             MethodInfo method = typeof(Mapper).GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
-                                              .Where(x => x.Name == "Map" && x.GetParameters().Length == 1)
+                                              .Where(x => x.Name == "MapNew")
                                               .First();
 
             // Get the type of the source objects and pass it into the method as a type parameter,
@@ -208,7 +210,7 @@ namespace MAB.SimpleMapper
 
             // Invoke the Map method, passing in the source object as a method parameter, and 
             // return the resulting object of type TDestination
-            return (TDestination)generic.Invoke(null, new object[] { source });
+            return (TDestination)generic.Invoke(null, new object[] { source, constructorParameters });
         }
 
         /// <summary>
@@ -217,7 +219,7 @@ namespace MAB.SimpleMapper
         /// <typeparam name="TDestination">Destination type</typeparam>
         /// <param name="source">Source list</param>
         /// <returns>New list of objects of type TDestination</returns>
-        public static List<TDestination> MapToList<TDestination>(this object source)
+        public static List<TDestination> MapToList<TDestination>(this object source, params object[] constructorParameters)
             where TDestination : class
         {
             if (source == null)
@@ -225,7 +227,7 @@ namespace MAB.SimpleMapper
 
             // Use reflection to get the MapList<TSource, TDestination>(TSource source) method
             MethodInfo method = typeof(Mapper).GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
-                                              .Where(x => x.Name == "MapList" && x.GetParameters().Length == 1)
+                                              .Where(x => x.Name == "MapList")
                                               .First();
 
             // Get the type argument of the source list and pass it into the method as a type parameter,
@@ -234,7 +236,7 @@ namespace MAB.SimpleMapper
 
             // Invoke the MapList method, passing in the source list as a method parameter, and 
             // return the resulting list of objects of type TDestination
-            return (List<TDestination>)generic.Invoke(null, new object[] { source });
+            return (List<TDestination>)generic.Invoke(null, new object[] { source, constructorParameters });
         }
 
         /// <summary>
@@ -243,7 +245,7 @@ namespace MAB.SimpleMapper
         /// <typeparam name="TDestination">Destination type</typeparam>
         /// <param name="source">Source list</param>
         /// <returns>New list of objects of type TDestination</returns>
-        public static IEnumerable<TDestination> MapToEnumerable<TDestination>(this object source)
+        public static IEnumerable<TDestination> MapToEnumerable<TDestination>(this object source, params object[] constructorParameters)
             where TDestination : class
         {
             if (source == null)
@@ -251,7 +253,7 @@ namespace MAB.SimpleMapper
 
             // Use reflection to get the MapList<TSource, TDestination>(TSource source) method
             MethodInfo method = typeof(Mapper).GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
-                                              .Where(x => x.Name == "MapList" && x.GetParameters().Length == 1)
+                                              .Where(x => x.Name == "MapList")
                                               .First();
 
             // Get the type argument of the source list and pass it into the method as a type parameter,
@@ -260,7 +262,7 @@ namespace MAB.SimpleMapper
 
             // Invoke the MapList method, passing in the source list as a method parameter, and 
             // return the resulting list of objects of type TDestination
-            return (IEnumerable<TDestination>)generic.Invoke(null, new object[] { source });
+            return (IEnumerable<TDestination>)generic.Invoke(null, new object[] { source, constructorParameters });
         }
     }
 }

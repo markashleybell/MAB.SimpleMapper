@@ -195,6 +195,66 @@ namespace MAB.SimpleMapper.Test
         }
 
         [Test]
+        public void Map_Single_Object_To_New_Object_With_Constructor_Parameters_By_Convention()
+        {
+            var model = _testEntities[1].MapTo<Model3>(100, "TEST");
+
+            model.Int.ShouldEqual(2);
+            model.IntNullable.ShouldEqual(null);
+            model.String.ShouldEqual("TEST ENTITY 2");
+            model.String2.ShouldEqual(null);
+            model.Bool.ShouldEqual(false);
+            model.BoolNullable.ShouldEqual(null);
+            model.Decimal.ShouldEqual(20.00M);
+            model.DecimalNullable.ShouldEqual(null);
+            model.Double.ShouldEqual(9876.5432);
+            model.DoubleNullable.ShouldEqual(null);
+            model.Short.ShouldEqual((short)30);
+            model.ShortNullable.ShouldEqual(null);
+            model.Date.ShouldEqual(new DateTime(2000, 01, 02));
+            model.DateNullable.ShouldEqual(null);
+            model.Entity2.ShouldEqual(null);
+            model.ListOfStrings.ShouldEqual(null);
+            model.ListOfEntities.ShouldEqual(null);
+            model.Enum.ShouldEqual(ModelEnum.Value2);
+
+            model.IDNameTest.ShouldEqual("100: TEST");
+        }
+
+        [Test]
+        public void Map_Single_Object_To_New_Object_With_Constructor_Parameters_By_Specification()
+        {
+            Mapper.AddMapping<Entity, Model3>((s, d) => {
+                d.Int = s.Int;
+                d.String = s.String;
+                d.String2 = "SHORT VALUE WAS: " + s.Short.ToString();
+            });
+
+            var model = _testEntities[0].MapTo<Model3>(100, "TEST");
+
+            model.Int.ShouldEqual(1);
+            model.IntNullable.ShouldEqual(null);
+            model.String.ShouldEqual("TEST ENTITY 1");
+            model.String2.ShouldEqual("SHORT VALUE WAS: 20");
+            model.Bool.ShouldEqual(false);
+            model.BoolNullable.ShouldEqual(null);
+            model.Decimal.ShouldEqual(0M);
+            model.DecimalNullable.ShouldEqual(null);
+            model.Double.ShouldEqual(0);
+            model.DoubleNullable.ShouldEqual(null);
+            model.Short.ShouldEqual((short)0);
+            model.ShortNullable.ShouldEqual(null);
+            model.Date.ShouldEqual(DateTime.MinValue);
+            model.DateNullable.ShouldEqual(null);
+            model.Entity2.ShouldEqual(null);
+            model.ListOfStrings.ShouldEqual(null);
+            model.ListOfEntities.ShouldEqual(null);
+            model.Enum.ShouldEqual(ModelEnum.Value1);
+
+            model.IDNameTest.ShouldEqual("100: TEST");
+        }
+
+        [Test]
         public void Map_List_Of_Object_To_New_List_Of_Object_By_Convention()
         {
             var list = _testEntities.MapToList<Model>();
@@ -286,6 +346,104 @@ namespace MAB.SimpleMapper.Test
             list[1].ListOfStrings.ShouldEqual(null);
             list[1].ListOfEntities.ShouldEqual(null);
             list[1].Enum.ShouldEqual(ModelEnum.Value1);
+        }
+
+        [Test]
+        public void Map_List_Of_Object_To_New_List_Of_Object_With_Constructor_Parameters_By_Convention()
+        {
+            var list = _testEntities.MapToList<Model3>(100, "TEST");
+
+            list[0].Int.ShouldEqual(1);
+            list[0].IntNullable.ShouldEqual(null);
+            list[0].String.ShouldEqual("TEST ENTITY 1");
+            list[0].String2.ShouldEqual(null);
+            list[0].Bool.ShouldEqual(true);
+            list[0].BoolNullable.ShouldEqual(null);
+            list[0].Decimal.ShouldEqual(10.00M);
+            list[0].DecimalNullable.ShouldEqual(null);
+            list[0].Double.ShouldEqual(1234.5678);
+            list[0].DoubleNullable.ShouldEqual(null);
+            list[0].Short.ShouldEqual((short)20);
+            list[0].ShortNullable.ShouldEqual(null);
+            list[0].Date.ShouldEqual(new DateTime(2000, 01, 01));
+            list[0].DateNullable.ShouldEqual(null);
+            list[0].Entity2.ShouldEqual(null);
+            list[0].ListOfStrings.ShouldEqual(null);
+            list[0].ListOfEntities.ShouldEqual(null);
+            list[0].Enum.ShouldEqual(ModelEnum.Value3);
+            list[0].IDNameTest.ShouldEqual("100: TEST");
+
+            list[1].Int.ShouldEqual(2);
+            list[1].IntNullable.ShouldEqual(null);
+            list[1].String.ShouldEqual("TEST ENTITY 2");
+            list[1].String2.ShouldEqual(null);
+            list[1].Bool.ShouldEqual(false);
+            list[1].BoolNullable.ShouldEqual(null);
+            list[1].Decimal.ShouldEqual(20.00M);
+            list[1].DecimalNullable.ShouldEqual(null);
+            list[1].Double.ShouldEqual(9876.5432);
+            list[1].DoubleNullable.ShouldEqual(null);
+            list[1].Short.ShouldEqual((short)30);
+            list[1].ShortNullable.ShouldEqual(null);
+            list[1].Date.ShouldEqual(new DateTime(2000, 01, 02));
+            list[1].DateNullable.ShouldEqual(null);
+            list[1].Entity2.ShouldEqual(null);
+            list[1].ListOfStrings.ShouldEqual(null);
+            list[1].ListOfEntities.ShouldEqual(null);
+            list[1].Enum.ShouldEqual(ModelEnum.Value2);
+            list[1].IDNameTest.ShouldEqual("100: TEST");
+        }
+
+        [Test]
+        public void Map_List_Of_Object_To_New_List_Of_Object_With_Constructor_Parameters_By_Specification()
+        {
+            Mapper.AddMapping<Entity, Model3>((s, d) => {
+                d.Int = s.Int;
+                d.String = s.String;
+                d.String2 = "SHORT VALUE WAS: " + s.Short.ToString();
+            });
+
+            var list = _testEntities.MapToList<Model3>(100, "TEST");
+
+            list[0].Int.ShouldEqual(1);
+            list[0].IntNullable.ShouldEqual(null);
+            list[0].String.ShouldEqual("TEST ENTITY 1");
+            list[0].String2.ShouldEqual("SHORT VALUE WAS: 20");
+            list[0].Bool.ShouldEqual(false);
+            list[0].BoolNullable.ShouldEqual(null);
+            list[0].Decimal.ShouldEqual(0M);
+            list[0].DecimalNullable.ShouldEqual(null);
+            list[0].Double.ShouldEqual(0);
+            list[0].DoubleNullable.ShouldEqual(null);
+            list[0].Short.ShouldEqual((short)0);
+            list[0].ShortNullable.ShouldEqual(null);
+            list[0].Date.ShouldEqual(DateTime.MinValue);
+            list[0].DateNullable.ShouldEqual(null);
+            list[0].Entity2.ShouldEqual(null);
+            list[0].ListOfStrings.ShouldEqual(null);
+            list[0].ListOfEntities.ShouldEqual(null);
+            list[0].Enum.ShouldEqual(ModelEnum.Value1);
+            list[0].IDNameTest.ShouldEqual("100: TEST");
+
+            list[1].Int.ShouldEqual(2);
+            list[1].IntNullable.ShouldEqual(null);
+            list[1].String.ShouldEqual("TEST ENTITY 2");
+            list[1].String2.ShouldEqual("SHORT VALUE WAS: 30");
+            list[1].Bool.ShouldEqual(false);
+            list[1].BoolNullable.ShouldEqual(null);
+            list[1].Decimal.ShouldEqual(0M);
+            list[1].DecimalNullable.ShouldEqual(null);
+            list[1].Double.ShouldEqual(0);
+            list[1].DoubleNullable.ShouldEqual(null);
+            list[1].Short.ShouldEqual((short)0);
+            list[1].ShortNullable.ShouldEqual(null);
+            list[1].Date.ShouldEqual(DateTime.MinValue);
+            list[1].DateNullable.ShouldEqual(null);
+            list[1].Entity2.ShouldEqual(null);
+            list[1].ListOfStrings.ShouldEqual(null);
+            list[1].ListOfEntities.ShouldEqual(null);
+            list[1].Enum.ShouldEqual(ModelEnum.Value1);
+            list[1].IDNameTest.ShouldEqual("100: TEST");
         }
 
         [Test]
@@ -388,6 +546,112 @@ namespace MAB.SimpleMapper.Test
             second.ListOfStrings.ShouldEqual(null);
             second.ListOfEntities.ShouldEqual(null);
             second.Enum.ShouldEqual(ModelEnum.Value1);
+        }
+
+        [Test]
+        public void Map_Enumerable_Of_Object_To_New_Enumerable_Of_Object_With_Constructor_Parameters_By_Convention()
+        {
+            var list = _testEntities.MapToEnumerable<Model3>(100, "TEST");
+
+            var first = list.First();
+
+            first.Int.ShouldEqual(1);
+            first.IntNullable.ShouldEqual(null);
+            first.String.ShouldEqual("TEST ENTITY 1");
+            first.String2.ShouldEqual(null);
+            first.Bool.ShouldEqual(true);
+            first.BoolNullable.ShouldEqual(null);
+            first.Decimal.ShouldEqual(10.00M);
+            first.DecimalNullable.ShouldEqual(null);
+            first.Double.ShouldEqual(1234.5678);
+            first.DoubleNullable.ShouldEqual(null);
+            first.Short.ShouldEqual((short)20);
+            first.ShortNullable.ShouldEqual(null);
+            first.Date.ShouldEqual(new DateTime(2000, 01, 01));
+            first.DateNullable.ShouldEqual(null);
+            first.Entity2.ShouldEqual(null);
+            first.ListOfStrings.ShouldEqual(null);
+            first.ListOfEntities.ShouldEqual(null);
+            first.Enum.ShouldEqual(ModelEnum.Value3);
+            first.IDNameTest.ShouldEqual("100: TEST");
+
+            var second = list.Last();
+
+            second.Int.ShouldEqual(2);
+            second.IntNullable.ShouldEqual(null);
+            second.String.ShouldEqual("TEST ENTITY 2");
+            second.String2.ShouldEqual(null);
+            second.Bool.ShouldEqual(false);
+            second.BoolNullable.ShouldEqual(null);
+            second.Decimal.ShouldEqual(20.00M);
+            second.DecimalNullable.ShouldEqual(null);
+            second.Double.ShouldEqual(9876.5432);
+            second.DoubleNullable.ShouldEqual(null);
+            second.Short.ShouldEqual((short)30);
+            second.ShortNullable.ShouldEqual(null);
+            second.Date.ShouldEqual(new DateTime(2000, 01, 02));
+            second.DateNullable.ShouldEqual(null);
+            second.Entity2.ShouldEqual(null);
+            second.ListOfStrings.ShouldEqual(null);
+            second.ListOfEntities.ShouldEqual(null);
+            second.Enum.ShouldEqual(ModelEnum.Value2);
+            second.IDNameTest.ShouldEqual("100: TEST");
+        }
+
+        [Test]
+        public void Map_Enumerable_Of_Object_To_New_Enumerable_Of_Object_With_Constructor_Parameters_By_Specification()
+        {
+            Mapper.AddMapping<Entity, Model3>((s, d) => {
+                d.Int = s.Int;
+                d.String = s.String;
+                d.String2 = "SHORT VALUE WAS: " + s.Short.ToString();
+            });
+
+            var list = _testEntities.MapToEnumerable<Model3>(100, "TEST");
+
+            var first = list.First();
+
+            first.Int.ShouldEqual(1);
+            first.IntNullable.ShouldEqual(null);
+            first.String.ShouldEqual("TEST ENTITY 1");
+            first.String2.ShouldEqual("SHORT VALUE WAS: 20");
+            first.Bool.ShouldEqual(false);
+            first.BoolNullable.ShouldEqual(null);
+            first.Decimal.ShouldEqual(0M);
+            first.DecimalNullable.ShouldEqual(null);
+            first.Double.ShouldEqual(0);
+            first.DoubleNullable.ShouldEqual(null);
+            first.Short.ShouldEqual((short)0);
+            first.ShortNullable.ShouldEqual(null);
+            first.Date.ShouldEqual(DateTime.MinValue);
+            first.DateNullable.ShouldEqual(null);
+            first.Entity2.ShouldEqual(null);
+            first.ListOfStrings.ShouldEqual(null);
+            first.ListOfEntities.ShouldEqual(null);
+            first.Enum.ShouldEqual(ModelEnum.Value1);
+            first.IDNameTest.ShouldEqual("100: TEST");
+
+            var second = list.Last();
+
+            second.Int.ShouldEqual(2);
+            second.IntNullable.ShouldEqual(null);
+            second.String.ShouldEqual("TEST ENTITY 2");
+            second.String2.ShouldEqual("SHORT VALUE WAS: 30");
+            second.Bool.ShouldEqual(false);
+            second.BoolNullable.ShouldEqual(null);
+            second.Decimal.ShouldEqual(0M);
+            second.DecimalNullable.ShouldEqual(null);
+            second.Double.ShouldEqual(0);
+            second.DoubleNullable.ShouldEqual(null);
+            second.Short.ShouldEqual((short)0);
+            second.ShortNullable.ShouldEqual(null);
+            second.Date.ShouldEqual(DateTime.MinValue);
+            second.DateNullable.ShouldEqual(null);
+            second.Entity2.ShouldEqual(null);
+            second.ListOfStrings.ShouldEqual(null);
+            second.ListOfEntities.ShouldEqual(null);
+            second.Enum.ShouldEqual(ModelEnum.Value1);
+            second.IDNameTest.ShouldEqual("100: TEST");
         }
 
         [Test]

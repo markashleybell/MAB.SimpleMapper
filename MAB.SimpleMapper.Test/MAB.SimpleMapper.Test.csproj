@@ -68,6 +68,7 @@
     <Compile Include="IntegrationTests.cs" />
     <Compile Include="Model.cs" />
     <Compile Include="Model2.cs" />
+    <Compile Include="Model3.cs" />
     <Compile Include="ModelEnum.cs" />
     <Compile Include="ModelPrivateProperties.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
