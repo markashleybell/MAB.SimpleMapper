@@ -11,7 +11,7 @@ namespace MAB.SimpleMapper.Test
     [TestFixture]
     public class Tests
     {
-        private List<Entity>_testEntities;
+        private List<Entity> _testEntities;
         private Entity2 _testEntity2;
         private Model _testModel;
         private Entity _testNullEntity;
@@ -23,7 +23,7 @@ namespace MAB.SimpleMapper.Test
             Mapper.ClearMappings();
 
             _testEntities = new List<Entity> {
-                new Entity { 
+                new Entity {
                     Int = 1,
                     IntNullable = null,
                     String = "TEST ENTITY 1",
@@ -43,7 +43,7 @@ namespace MAB.SimpleMapper.Test
                     ListOfEntities = null,
                     Enum = EntityEnum.Value3
                 },
-                new Entity { 
+                new Entity {
                     Int = 2,
                     IntNullable = null,
                     String = "TEST ENTITY 2",
@@ -64,7 +64,7 @@ namespace MAB.SimpleMapper.Test
                     Enum = EntityEnum.Value2
                 }
             };
-       
+
             _testEntity2 = new Entity2 {
                 ID = 1,
                 Title = "ENTITY 2",
@@ -166,8 +166,7 @@ namespace MAB.SimpleMapper.Test
         [Test]
         public void Map_Single_Object_To_New_Object_By_Specification()
         {
-            Mapper.AddMapping<Entity, Model>((s, d) =>
-            {
+            Mapper.AddMapping<Entity, Model>((s, d) => {
                 d.Int = s.Int;
                 d.String = s.String;
                 d.String2 = "SHORT VALUE WAS: " + s.Short.ToString();
@@ -218,7 +217,7 @@ namespace MAB.SimpleMapper.Test
             list[0].ListOfStrings.ShouldEqual(null);
             list[0].ListOfEntities.ShouldEqual(null);
             list[0].Enum.ShouldEqual(ModelEnum.Value3);
-           
+
             list[1].Int.ShouldEqual(2);
             list[1].IntNullable.ShouldEqual(null);
             list[1].String.ShouldEqual("TEST ENTITY 2");
@@ -242,8 +241,7 @@ namespace MAB.SimpleMapper.Test
         [Test]
         public void Map_List_Of_Object_To_New_List_Of_Object_By_Specification()
         {
-            Mapper.AddMapping<Entity, Model>((s, d) =>
-            {
+            Mapper.AddMapping<Entity, Model>((s, d) => {
                 d.Int = s.Int;
                 d.String = s.String;
                 d.String2 = "SHORT VALUE WAS: " + s.Short.ToString();
@@ -341,8 +339,7 @@ namespace MAB.SimpleMapper.Test
         [Test]
         public void Map_Enumerable_Of_Object_To_New_Enumerable_Of_Object_By_Specification()
         {
-            Mapper.AddMapping<Entity, Model>((s, d) =>
-            {
+            Mapper.AddMapping<Entity, Model>((s, d) => {
                 d.Int = s.Int;
                 d.String = s.String;
                 d.String2 = "SHORT VALUE WAS: " + s.Short.ToString();
@@ -396,15 +393,13 @@ namespace MAB.SimpleMapper.Test
         [Test]
         public void Map_Single_Proxy_Object_To_Existing_Object_By_Specification()
         {
-            Mapper.AddMapping<Entity, Model>((s, d) =>
-            {
+            Mapper.AddMapping<Entity, Model>((s, d) => {
                 d.Int = (s.Int + 30);
                 d.String = "PROXIED: " + s.String;
                 d.String2 = "SHORT VALUE WAS: " + s.Short.ToString();
             });
 
-            var proxy = new System.Data.Entity.DynamicProxies.ProxyEntity
-            {
+            var proxy = new System.Data.Entity.DynamicProxies.ProxyEntity {
                 Int = 20,
                 String = "TEST PROXIED ENTITY",
                 Short = 100
@@ -477,7 +472,7 @@ namespace MAB.SimpleMapper.Test
         [Test]
         public void Map_Single_Object_To_New_Object_With_Private_Setters_By_Convention()
         {
-            var entity = new EntityPrivateProperties { 
+            var entity = new EntityPrivateProperties {
                 ID = 123,
                 Name = "John Test",
                 Email = "john@test.com"
@@ -500,7 +495,7 @@ namespace MAB.SimpleMapper.Test
                 destProperties.First(x => x.Name == "Email").SetValue(d, s.Email, null);
             });
 
-            var entity = new EntityPrivateProperties { 
+            var entity = new EntityPrivateProperties {
                 ID = 123,
                 Name = "John Test",
                 Email = "john@test.com"
