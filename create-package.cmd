@@ -1,1 +1,0 @@
-NuGet pack mab.lib.SimpleMapper.nuspec -OutputDirectory mab.lib.SimpleMapper\bin\Release

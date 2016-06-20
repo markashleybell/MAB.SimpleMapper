@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>$id$</id>
+        <version>$version$</version>
+        <authors>Mark Ashley Bell</authors>
+        <licenseUrl>https://github.com/markashleybell/MAB.SimpleMapper/blob/master/LICENSE.md</licenseUrl>
+        <projectUrl>https://github.com/markashleybell/MAB.SimpleMapper</projectUrl>
+        <summary>A lightweight object mapping library.</summary>
+        <description>A lightweight object mapping library.</description>
+        <copyright>Copyright © 2016 Mark Ashley Bell</copyright>
+        <language>en-GB</language>
+        <tags>object mapper mapping poco</tags>
+    </metadata>
+</package>
