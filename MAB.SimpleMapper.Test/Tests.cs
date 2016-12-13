@@ -766,6 +766,14 @@ namespace MAB.SimpleMapper.Test
         }
 
         [Test]
+        public void Map_NULL_Object_To_New_Enumerable()
+        {
+            var model = _testNullEntities.MapToEnumerable<Model>();
+
+            model.ShouldEqual(null);
+        }
+
+        [Test]
         public void Map_Single_Object_To_New_Object_With_Private_Setters_By_Convention()
         {
             var entity = new EntityPrivateProperties {
