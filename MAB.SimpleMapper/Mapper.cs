@@ -12,6 +12,48 @@ namespace MAB.SimpleMapper
 {
     public static class Mapper
     {
+        public static bool UseCustomDelegate = false;
+
+        public static ConcurrentDictionary<Type, object> _activators = new ConcurrentDictionary<Type, object>();
+
+        private delegate T CreateT<T>(params object[] args);
+
+        private static CreateT<T> CreateObject<T>()
+        {
+            var ctor = typeof(T).GetConstructors().FirstOrDefault();
+
+            if(ctor == null)
+                throw new Exception("Destination type has no public parameterless constructor");
+
+            var type = ctor.DeclaringType;
+            var ctorParams = ctor.GetParameters();
+
+            //create a single param of type object[]
+            var args = Expression.Parameter(typeof(object[]), "args");
+
+            var argsExp = new Expression[ctorParams.Length];
+
+            //pick each arg from the params array 
+            //and create a typed expression of them
+            for (int i = 0; i < ctorParams.Length; i++)
+            {
+                argsExp[i] = Expression.Convert(
+                    Expression.ArrayIndex(args, Expression.Constant(i)),
+                    ctorParams[i].ParameterType
+                );
+            }
+
+            //make a NewExpression that calls the
+            //ctor with the args we just created
+            var newExp = Expression.New(ctor, argsExp);
+
+            //create a lambda with the New
+            //Expression as body and our param object[] as arg
+            var lambda = Expression.Lambda(typeof(CreateT<T>), newExp, args);
+
+            return (CreateT<T>)lambda.Compile();
+        }
+
         // If the type is in this namespace, it's probably an Entity Framework dynamic proxy, so 
         // won't match any custom mappings keyed on the base type. This lets us test for that.
         private const string _EF_DYNAMIC_PROXY_PREFIX = "System.Data.Entity.DynamicProxies";
@@ -63,9 +105,37 @@ namespace MAB.SimpleMapper
             if (source == null)
                 return default(TDestination);
 
+            Func<TDestination> creator = null;
+
+            if(UseCustomDelegate)
+            {
+                var dtype = typeof(TDestination);
+
+                CreateT<TDestination> act = (_activators.ContainsKey(dtype)) ? _activators[dtype] as CreateT<TDestination> : null;
+
+                if(act == null)
+                { 
+                    act = CreateObject<TDestination>();
+                    _activators.TryAdd(dtype, act);
+                }
+                else {
+                    Console.WriteLine("USING CACHED");
+                }
+
+                creator = () => act();
+
+                // Console.WriteLine("CUSTOM");
+            }
+            else
+            {
+                creator = () => Activator.CreateInstance<TDestination>();
+
+                // Console.WriteLine("OLD");
+            }
+
             // Create a new instance of the destination type
             var destination = (constructorParameters == null || constructorParameters.Length == 0) 
-                            ? Activator.CreateInstance<TDestination>()
+                            ? creator()
                             : (TDestination)Activator.CreateInstance(typeof(TDestination), constructorParameters);
 
             // Map the source object to the new destination instance
@@ -259,6 +329,23 @@ namespace MAB.SimpleMapper
             // Invoke the MapList method, passing in the source list as a method parameter, and 
             // return the resulting list of objects of type TDestination
             return (IEnumerable<TDestination>)generic.Invoke(null, new object[] { source, constructorParameters });
+        }
+
+        public static TDestination UseToConstruct<TDestination>(this object source)
+        {
+            var ctors = typeof(TDestination).GetConstructors();
+            // assuming class A has only one constructor
+            var ctor = ctors[0];
+            foreach (var param in ctor.GetParameters())
+            {
+                Console.WriteLine(string.Format(
+                    "Param {0} is named {1} and is of type {2}",
+                    param.Position, param.Name, param.ParameterType));
+            }
+
+            var tmp = new List<Tuple<ConstructorInfo, int>>();
+
+            return default(TDestination);
         }
     }
 }
