@@ -153,10 +153,6 @@ namespace MAB.SimpleMapper
             where TSource : class
             where TDestination : class
         {
-            // TODO: Should throw exception, surely. Was there a reason I did this in the previous version? 
-            //if (source == null)
-            //    return default(List<TDestination>);
-
             var destination = new List<TDestination>();
 
             foreach (var item in source)
