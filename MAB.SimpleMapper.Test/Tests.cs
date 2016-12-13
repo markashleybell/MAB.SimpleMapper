@@ -726,6 +726,66 @@ namespace MAB.SimpleMapper.Test
         }
 
         [Test]
+        public void Map_Single_Object_To_Existing_Proxy_Object_By_Convention()
+        {
+            var proxy = new System.Data.Entity.DynamicProxies.ProxyEntity();
+
+            _testModel.MapTo(proxy);
+
+            proxy.Int.ShouldEqual(10);
+            proxy.IntNullable.ShouldEqual(null);
+            proxy.String.ShouldEqual("TEST MODEL");
+            proxy.String2.ShouldEqual(null);
+            proxy.Bool.ShouldEqual(false);
+            proxy.BoolNullable.ShouldEqual(null);
+            proxy.Decimal.ShouldEqual(0M);
+            proxy.DecimalNullable.ShouldEqual(null);
+            proxy.Double.ShouldEqual(0);
+            proxy.DoubleNullable.ShouldEqual(null);
+            proxy.Short.ShouldEqual((short)0);
+            proxy.ShortNullable.ShouldEqual(null);
+            proxy.Date.ShouldEqual(DateTime.MinValue);
+            proxy.DateNullable.ShouldEqual(null);
+            proxy.Entity2.ShouldEqual(null);
+            proxy.ListOfStrings.ShouldEqual(null);
+            proxy.ListOfEntities.ShouldEqual(null);
+            proxy.Enum.ShouldEqual(EntityEnum.Value1);
+        }
+
+        [Test]
+        public void Map_Single_Object_To_Existing_Proxy_Object_By_Specification()
+        {
+            var proxy = new System.Data.Entity.DynamicProxies.ProxyEntity();
+
+            Mapper.AddMapping<Model, Entity>((s, d) => {
+                d.Int = (s.Int + 30);
+                d.String = "PROXIED: " + s.String;
+                d.String2 = "SHORT VALUE WAS: " + s.Short.ToString();
+            });
+
+            _testModel.MapTo(proxy);
+
+            proxy.Int.ShouldEqual(40);
+            proxy.IntNullable.ShouldEqual(null);
+            proxy.String.ShouldEqual("PROXIED: TEST MODEL");
+            proxy.String2.ShouldEqual("SHORT VALUE WAS: 0");
+            proxy.Bool.ShouldEqual(false);
+            proxy.BoolNullable.ShouldEqual(null);
+            proxy.Decimal.ShouldEqual(0M);
+            proxy.DecimalNullable.ShouldEqual(null);
+            proxy.Double.ShouldEqual(0);
+            proxy.DoubleNullable.ShouldEqual(null);
+            proxy.Short.ShouldEqual((short)0);
+            proxy.ShortNullable.ShouldEqual(null);
+            proxy.Date.ShouldEqual(DateTime.MinValue);
+            proxy.DateNullable.ShouldEqual(null);
+            proxy.Entity2.ShouldEqual(null);
+            proxy.ListOfStrings.ShouldEqual(null);
+            proxy.ListOfEntities.ShouldEqual(null);
+            proxy.Enum.ShouldEqual(EntityEnum.Value1);
+        }
+
+        [Test]
         public void Map_NULL_Object_To_Existing_Object()
         {
             _testNullEntity.MapTo(_testModel);
