@@ -62,7 +62,8 @@ namespace MAB.SimpleMapper.Test
                     ListOfStrings = null,
                     ListOfEntities = null,
                     Enum = EntityEnum.Value2
-                }
+                },
+                null
             };
 
             _testEntity2 = new Entity2 {
@@ -472,7 +473,7 @@ namespace MAB.SimpleMapper.Test
             first.ListOfEntities.ShouldEqual(null);
             first.Enum.ShouldEqual(ModelEnum.Value3);
 
-            var second = list.Last();
+            var second = list.Skip(1).First();
 
             second.Int.ShouldEqual(2);
             second.IntNullable.ShouldEqual(null);
@@ -526,7 +527,7 @@ namespace MAB.SimpleMapper.Test
             first.ListOfEntities.ShouldEqual(null);
             first.Enum.ShouldEqual(ModelEnum.Value1);
 
-            var second = list.Last();
+            var second = list.Skip(1).First();
 
             second.Int.ShouldEqual(2);
             second.IntNullable.ShouldEqual(null);
@@ -575,7 +576,7 @@ namespace MAB.SimpleMapper.Test
             first.Enum.ShouldEqual(ModelEnum.Value3);
             first.IDNameTest.ShouldEqual("100: TEST");
 
-            var second = list.Last();
+            var second = list.Skip(1).First();
 
             second.Int.ShouldEqual(2);
             second.IntNullable.ShouldEqual(null);
@@ -631,7 +632,7 @@ namespace MAB.SimpleMapper.Test
             first.Enum.ShouldEqual(ModelEnum.Value1);
             first.IDNameTest.ShouldEqual("100: TEST");
 
-            var second = list.Last();
+            var second = list.Skip(1).First();
 
             second.Int.ShouldEqual(2);
             second.IntNullable.ShouldEqual(null);
