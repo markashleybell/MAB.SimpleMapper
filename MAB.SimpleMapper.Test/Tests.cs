@@ -931,5 +931,57 @@ namespace MAB.SimpleMapper.Test
             models[1].Name.ShouldEqual("Jane Test");
             models[1].Email.ShouldEqual("jane@test.com");
         }
+
+        [Test]
+        public void Map_NULL_Object_To_New_Constructor()
+        {
+            ModelConstructorOnly model = null;
+
+            var entity = model.MapToConstructor<EntityConstructorOnly>();
+
+            model.ShouldEqual(null);
+        }
+
+        [Test]
+        public void Map_Object_To_New_Constructor_Exact_Arguments()
+        {
+            var model = new {
+                ID = 100,
+                Email = "test@test.com"
+            };
+
+            var entity = model.MapToConstructor<EntityConstructorOnly>();
+
+            entity.ID.ShouldEqual(100);
+            entity.Email.ShouldEqual("test@test.com");
+        }
+
+        [Test]
+        public void Map_Object_To_New_Constructor_More_Arguments()
+        {
+            var model = new {
+                Name = "TEST NAME",
+                ID = 100,
+                Email = "test@test.com"
+            };
+
+            var entity = model.MapToConstructor<EntityConstructorOnly>();
+
+            entity.ID.ShouldEqual(100);
+            entity.Email.ShouldEqual("test@test.com");
+        }
+
+        [Test]
+        public void Map_Object_To_New_Constructor_Less_Arguments()
+        {
+            var model = new {
+                Email = "test@test.com"
+            };
+
+            var entity = model.MapToConstructor<EntityConstructorOnly>();
+
+            entity.ID.ShouldEqual(0);
+            entity.Email.ShouldEqual("test@test.com");
+        }
     }
 }

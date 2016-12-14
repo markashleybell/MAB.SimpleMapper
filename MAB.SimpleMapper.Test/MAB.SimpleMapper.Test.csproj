@@ -62,6 +62,8 @@
   <ItemGroup>
     <Compile Include="Entity.cs" />
     <Compile Include="Entity2.cs" />
+    <Compile Include="ModelConstructorOnly.cs" />
+    <Compile Include="EntityConstructorOnly.cs" />
     <Compile Include="EntityEnum.cs" />
     <Compile Include="EntityPrivateProperties.cs" />
     <Compile Include="Extensions.cs" />
