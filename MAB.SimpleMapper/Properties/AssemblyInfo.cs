@@ -22,6 +22,9 @@ using System.Runtime.InteropServices;
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("2f830b31-805d-43d9-b2b6-d2f16f94d59a")]
 
+// Allow access to internal methods from LINQPad (for benchmarking)
+[assembly: InternalsVisibleTo("LINQPadQuery")]
+
 // Version information for an assembly consists of the following four values:
 //
 //      Major Version
