@@ -12,48 +12,6 @@ namespace MAB.SimpleMapper
 {
     public static class Mapper
     {
-        public static bool UseCustomDelegate = false;
-
-        public static ConcurrentDictionary<Type, object> _activators = new ConcurrentDictionary<Type, object>();
-
-        private delegate T CreateT<T>(params object[] args);
-
-        private static CreateT<T> CreateObject<T>()
-        {
-            var ctor = typeof(T).GetConstructors().FirstOrDefault();
-
-            if(ctor == null)
-                throw new Exception("Destination type has no public parameterless constructor");
-
-            var type = ctor.DeclaringType;
-            var ctorParams = ctor.GetParameters();
-
-            //create a single param of type object[]
-            var args = Expression.Parameter(typeof(object[]), "args");
-
-            var argsExp = new Expression[ctorParams.Length];
-
-            //pick each arg from the params array 
-            //and create a typed expression of them
-            for (int i = 0; i < ctorParams.Length; i++)
-            {
-                argsExp[i] = Expression.Convert(
-                    Expression.ArrayIndex(args, Expression.Constant(i)),
-                    ctorParams[i].ParameterType
-                );
-            }
-
-            //make a NewExpression that calls the
-            //ctor with the args we just created
-            var newExp = Expression.New(ctor, argsExp);
-
-            //create a lambda with the New
-            //Expression as body and our param object[] as arg
-            var lambda = Expression.Lambda(typeof(CreateT<T>), newExp, args);
-
-            return (CreateT<T>)lambda.Compile();
-        }
-
         // If the type is in this namespace, it's probably an Entity Framework dynamic proxy, so 
         // won't match any custom mappings keyed on the base type. This lets us test for that.
         private const string _EF_DYNAMIC_PROXY_PREFIX = "System.Data.Entity.DynamicProxies";
@@ -105,37 +63,9 @@ namespace MAB.SimpleMapper
             if (source == null)
                 return default(TDestination);
 
-            Func<TDestination> creator = null;
-
-            if(UseCustomDelegate)
-            {
-                var dtype = typeof(TDestination);
-
-                CreateT<TDestination> act = (_activators.ContainsKey(dtype)) ? _activators[dtype] as CreateT<TDestination> : null;
-
-                if(act == null)
-                { 
-                    act = CreateObject<TDestination>();
-                    _activators.TryAdd(dtype, act);
-                }
-                else {
-                    Console.WriteLine("USING CACHED");
-                }
-
-                creator = () => act();
-
-                // Console.WriteLine("CUSTOM");
-            }
-            else
-            {
-                creator = () => Activator.CreateInstance<TDestination>();
-
-                // Console.WriteLine("OLD");
-            }
-
             // Create a new instance of the destination type
             var destination = (constructorParameters == null || constructorParameters.Length == 0) 
-                            ? creator()
+                            ? Activator.CreateInstance<TDestination>()
                             : (TDestination)Activator.CreateInstance(typeof(TDestination), constructorParameters);
 
             // Map the source object to the new destination instance
@@ -331,21 +261,149 @@ namespace MAB.SimpleMapper
             return (IEnumerable<TDestination>)generic.Invoke(null, new object[] { source, constructorParameters });
         }
 
-        public static TDestination UseToConstruct<TDestination>(this object source)
+        #region Constructor Mapping
+
+        // Tuple-keyed dictionary to allow us to look up cached constructor 
+        // expressions based on the combination of source and destination type
+        private static ConcurrentDictionary<Tuple<Type, Type>, Tuple<object, ConstructorInfo>> _activators = new ConcurrentDictionary<Tuple<Type, Type>, Tuple<object, ConstructorInfo>>();
+
+        // As the number of parameters is unknown, we can't return Func<TSource, TDestination>
+        // from CreateObject<T> (because there are only a finite number of overloads), so we 
+        // set up a delegate which can be called to create objects
+        private delegate T CreateT<T>(params object[] args);
+
+        // Returns a delegate expression which will create an object 
+        // of the specified type using the specified constructor
+        private static CreateT<T> CreateObject<T>(ConstructorInfo constructor)
         {
-            var ctors = typeof(TDestination).GetConstructors();
-            // assuming class A has only one constructor
-            var ctor = ctors[0];
-            foreach (var param in ctor.GetParameters())
-            {
-                Console.WriteLine(string.Format(
-                    "Param {0} is named {1} and is of type {2}",
-                    param.Position, param.Name, param.ParameterType));
+            var type = constructor.DeclaringType;
+            var constructorParams = constructor.GetParameters();
+
+            // Here's our object[] args parameter, as an expression
+            var args = Expression.Parameter(typeof(object[]), "args");
+
+            // For each constructor parameter, create an expression which 
+            // converts the object at the same index in the args array to 
+            // the correct type for the parameter
+            var argExpressions = constructorParams.Select((p, i) => Expression.Convert(
+                Expression.ArrayIndex(args, Expression.Constant(i)),
+                constructorParams[i].ParameterType
+            )).ToArray();
+
+            // Create the 'new' expression using the constructor and the 
+            // array of convert expressions for each parameter
+            var newExp = Expression.New(constructor, argExpressions);
+
+            // Create a lambda expression which takes an object[] and passes
+            // it to our generated 'new' expression
+            var lambda = Expression.Lambda(typeof(CreateT<T>), newExp, args);
+
+            // Construct and return a CreateT<T>(params object[] args) body
+            return (CreateT<T>)lambda.Compile();
+        }
+
+        private static object GetDefault(Type type)
+        {
+            return type.IsValueType ? Activator.CreateInstance(type) : null;
+        }
+
+        /// <summary>
+        /// Create a new object of type <typeparamref name="TDestination"/> by passing the property values of 
+        /// <paramref name="source"/> as constructor parameters 
+        /// </summary>
+        /// <typeparam name="TDestination">Destination type</typeparam>
+        /// <param name="source">Source object</param>
+        /// <returns>New object of type TDestination</returns>
+        public static TDestination MapToConstructor<TDestination>(this object source) 
+            where TDestination: class
+        {
+            if(source == null)
+                return default(TDestination);
+
+            return MapToConstructorCustomDelegate<TDestination>(source);
+        }
+
+        // This implementation is approximately 2x slower than MapToConstructorCreateInstance, but will
+        // attempt to find a constructor signature which matches as many of the properties of the source 
+        // object as possible by name and type (order is not considered). This means it can create instances 
+        // from source objects with *any* number of properties, as long as the object being created allows 
+        // default values to be passed in for any constructor parameters which can't be matched.
+        // In common use cases perf isn't really an issue anyway (around 100ms slower creating 10,000 objects)
+        internal static TDestination MapToConstructorCustomDelegate<TDestination>(this object source) 
+            where TDestination: class
+        {
+            var sourceType = source.GetType();
+            var destinationType = typeof(TDestination);
+
+            var sourceProperties = sourceType.GetProperties();
+
+            var key = Tuple.Create(sourceType, destinationType);
+
+            // See if there's an entry in the activator cache for this source/destination combination
+            var activator = (_activators.ContainsKey(key)) ? _activators[key] : null;
+
+            if(activator == null)
+            { 
+                // Get all the constructors for the destination type
+                var constructors = destinationType.GetConstructors();
+        
+                var constructorSignatures = new Dictionary<ConstructorInfo, IEnumerable<string>>();
+
+                // For each constructor on this type, add a dictionary entry where the constructor itself 
+                // is the key, and the value is a list of the parameters for the constructor, converted 
+                // to strings in the form PROPNAME~TYPENAME
+                foreach (var constructor in constructors)
+                {
+                    var constructorSignature = constructor.GetParameters().Select(p => string.Format("{0}~{1}", GetNormalisedPropertyName(p.Name), p.ParameterType));
+                    constructorSignatures.Add(constructor, constructorSignature);
+                }
+        
+                // Now we do the same with all the properties of the source type
+                var sourcePropertySignature = sourceProperties.Select(p => string.Format("{0}~{1}", GetNormalisedPropertyName(p.Name), p.PropertyType));
+
+                // This dictionary will hold a number telling us how different each constructor signature
+                var rankedConstructorSignatures = new List<Tuple<ConstructorInfo, int>>();
+
+                // Loop over each constructor signature and find the one which matches the most source type 
+                // properties, by intersecting the array of property signatures for each constructor with the 
+                // property signature of the current source object
+                foreach (var k in constructorSignatures.Keys)
+                    rankedConstructorSignatures.Add(new Tuple<ConstructorInfo, int>(k, sourcePropertySignature.Intersect(constructorSignatures[k]).Count()));
+        
+                // Pick the constructor with the largest intersection with the source type's properties
+                var bestConstructor = rankedConstructorSignatures.OrderByDescending(x => x.Item2).First().Item1;
+        
+                // Create a delegate which will construct on object of the new type using the best matching constructor
+                var createDelegate = CreateObject<TDestination>(bestConstructor);
+
+                // Cache the delegate along with the best constructor, so we can use it again if the consumer  
+                // needs to construct another new instance of TDestination from the same source type
+                activator = new Tuple<object, ConstructorInfo>(createDelegate, bestConstructor);
+                _activators.TryAdd(Tuple.Create(sourceType, destinationType), activator);
             }
 
-            var tmp = new List<Tuple<ConstructorInfo, int>>();
+            Func<PropertyInfo, ParameterInfo, bool> find = (sp, p) => GetNormalisedPropertyName(sp.Name) == GetNormalisedPropertyName(p.Name) && sp.PropertyType == p.ParameterType;
+            Func<ParameterInfo, object> getValue = (p) => {
+                var prop = sourceProperties.FirstOrDefault(sp => find(sp, p));
+                return prop == null ? GetDefault(p.ParameterType) : prop.GetValue(source, null);
+            };
 
-            return default(TDestination);
+            var args = activator.Item2.GetParameters().Select(p => getValue(p)).ToArray();
+            
+            return ((CreateT<TDestination>)activator.Item1)(args);
         }
+
+        // This implementation is approx 2x faster than MapToConstructorCustomDelegate, but 
+        // will only handle mapping from types where the properties match the constructor parameters
+        // *exactly* (i.e. in number, order, name and type) 
+        internal static TDestination MapToConstructorCreateInstance<TDestination>(this object source) 
+            where TDestination : class
+        {
+            var sourceProperties = source.GetType().GetProperties().Select(p => p.GetValue(source, null)).ToArray();
+        
+            return (TDestination)Activator.CreateInstance(typeof(TDestination), sourceProperties);
+        }
+
+        #endregion Constructor Mapping
     }
 }
