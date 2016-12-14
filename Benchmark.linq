@@ -1,50 +1,45 @@
 <Query Kind="Program">
-  <Reference Relative="MAB.SimpleMapper\bin\Debug\MAB.SimpleMapper.dll">E:\Src\MAB.SimpleMapper\MAB.SimpleMapper\bin\Debug\MAB.SimpleMapper.dll</Reference>
+  <Reference Relative="MAB.SimpleMapper\bin\Debug\MAB.SimpleMapper.dll">C:\Src\MAB.SimpleMapper\MAB.SimpleMapper\bin\Debug\MAB.SimpleMapper.dll</Reference>
   <Namespace>MAB.SimpleMapper</Namespace>
 </Query>
 
 void Main()
 {
+    // Cha
+    
     Mapper.ClearMappings();
 
-    var entities = GetEntities(1000);
+    var entities = GetEntities(10000);
 
     var results = new List<Model>();
 
     var result1 = Benchmark.Perform(() => {
         foreach (var entity in entities)
         {
-            // var model = new Model();
-            // entity.MapTo(model);
-            var model = entity.MapTo<Model>();
+            var model = entity.MapToConstructorCreateInstance<Model>();
             results.Add(model);
         }
     });
 
     Mapper.ClearMappings();
-    Mapper.UseCustomDelegate = true;
 
     var results2 = new List<Model>();
 
     var result2 = Benchmark.Perform(() => {
         foreach (var entity in entities)
         {
-//            var model = new Model();
-//            entity.MapTo(model);
-            var model = entity.MapTo<Model>();
+            var model = entity.MapToConstructorCustomDelegate<Model>();
             results2.Add(model);
         }
     });
 
-    result1.Dump("Activator.CreateInstance");
+    result1.Dump("MapToConstructorCreateInstance");
 
     results.Take(10).Dump();
 
-    result2.Dump("Cached Delegate");
+    result2.Dump("MapToConstructorCustomDelegate");
 
     results.Take(10).Dump();
-    
-    Mapper._activators.Dump();
 }
 
 public IEnumerable<Entity> GetEntities(int count)
@@ -77,10 +72,18 @@ public class Entity
 
 public class Model 
 {
-    public int ID { get; set; }
-    public string Email { get; set; }
-    public DateTime Created { get; set; }
-    public bool Active { get; set; }
+    public int ID { get; private set; }
+    public string Email { get; private set; }
+    public DateTime Created { get; private set; }
+    public bool Active { get; private set; }
+    
+    public Model(int id, string email, DateTime created, bool active)
+    {
+        ID = id;
+        Email = email;
+        Created = created;
+        Active = active;
+    }
 }
 
 public class Benchmark 
