@@ -12,6 +12,8 @@ namespace MAB.SimpleMapper
 {
     public static class Mapper
     {
+        #region Member Variables
+
         // If the type is in this namespace, it's probably an Entity Framework dynamic proxy, so 
         // won't match any custom mappings keyed on the base type. This lets us test for that.
         private const string _EF_DYNAMIC_PROXY_PREFIX = "System.Data.Entity.DynamicProxies";
@@ -21,12 +23,64 @@ namespace MAB.SimpleMapper
         // mapping to and from the same type
         private static ConcurrentDictionary<Tuple<Type, Type>, object> _maps = new ConcurrentDictionary<Tuple<Type, Type>, object>();
 
+        // Tuple-keyed dictionary to allow us to look up cached constructor 
+        // expressions based on the combination of source and destination type
+        private static ConcurrentDictionary<Tuple<Type, Type>, Tuple<object, ConstructorInfo>> _activators = new ConcurrentDictionary<Tuple<Type, Type>, Tuple<object, ConstructorInfo>>();
+
+        #endregion Member Variables
+
+        #region Support Methods
+
+        private static object GetDefault(Type type)
+        {
+            return type.IsValueType ? Activator.CreateInstance(type) : null;
+        }
+
         // Uppercase and remove underscores from property names to allow (sort of) fuzzy matching
         private static string GetNormalisedPropertyName(string propertyName)
         {
             return Regex.Replace(propertyName.ToUpperInvariant(), "_", "");
         }
 
+        // As the number of parameters is unknown, we can't return Func<TSource, TDestination>
+        // from CreateObject<T> (because there are only a finite number of overloads), so we 
+        // set up a delegate which can be called to create objects
+        private delegate T CreateT<T>(params object[] args);
+
+        // Returns a delegate expression which will create an object 
+        // of the specified type using the specified constructor
+        private static CreateT<T> CreateObject<T>(ConstructorInfo constructor)
+        {
+            var type = constructor.DeclaringType;
+            var constructorParams = constructor.GetParameters();
+
+            // Here's our object[] args parameter, as an expression
+            var args = Expression.Parameter(typeof(object[]), "args");
+
+            // For each constructor parameter, create an expression which 
+            // converts the object at the same index in the args array to 
+            // the correct type for the parameter
+            var argExpressions = constructorParams.Select((p, i) => Expression.Convert(
+                Expression.ArrayIndex(args, Expression.Constant(i)),
+                constructorParams[i].ParameterType
+            )).ToArray();
+
+            // Create the 'new' expression using the constructor and the 
+            // array of convert expressions for each parameter
+            var newExp = Expression.New(constructor, argExpressions);
+
+            // Create a lambda expression which takes an object[] and passes
+            // it to our generated 'new' expression
+            var lambda = Expression.Lambda(typeof(CreateT<T>), newExp, args);
+
+            // Construct and return a CreateT<T>(params object[] args) body
+            return (CreateT<T>)lambda.Compile();
+        }
+
+        #endregion Support Methods
+
+        #region Custom Mapping Lookups
+        
         /// <summary>
         /// Add a custom mapping between a particular source and destination type
         /// </summary>
@@ -48,6 +102,10 @@ namespace MAB.SimpleMapper
         {
             _maps.Clear();
         }
+
+        #endregion Custom Mapping Lookups
+
+        #region Property Mapping Methods
 
         /// <summary>
         /// Map a source object of type TSource to a new object of type TDestination
@@ -261,51 +319,9 @@ namespace MAB.SimpleMapper
             return (IEnumerable<TDestination>)generic.Invoke(null, new object[] { source, constructorParameters });
         }
 
-        #region Constructor Mapping
+        #endregion Property Mapping Methods
 
-        // Tuple-keyed dictionary to allow us to look up cached constructor 
-        // expressions based on the combination of source and destination type
-        private static ConcurrentDictionary<Tuple<Type, Type>, Tuple<object, ConstructorInfo>> _activators = new ConcurrentDictionary<Tuple<Type, Type>, Tuple<object, ConstructorInfo>>();
-
-        // As the number of parameters is unknown, we can't return Func<TSource, TDestination>
-        // from CreateObject<T> (because there are only a finite number of overloads), so we 
-        // set up a delegate which can be called to create objects
-        private delegate T CreateT<T>(params object[] args);
-
-        // Returns a delegate expression which will create an object 
-        // of the specified type using the specified constructor
-        private static CreateT<T> CreateObject<T>(ConstructorInfo constructor)
-        {
-            var type = constructor.DeclaringType;
-            var constructorParams = constructor.GetParameters();
-
-            // Here's our object[] args parameter, as an expression
-            var args = Expression.Parameter(typeof(object[]), "args");
-
-            // For each constructor parameter, create an expression which 
-            // converts the object at the same index in the args array to 
-            // the correct type for the parameter
-            var argExpressions = constructorParams.Select((p, i) => Expression.Convert(
-                Expression.ArrayIndex(args, Expression.Constant(i)),
-                constructorParams[i].ParameterType
-            )).ToArray();
-
-            // Create the 'new' expression using the constructor and the 
-            // array of convert expressions for each parameter
-            var newExp = Expression.New(constructor, argExpressions);
-
-            // Create a lambda expression which takes an object[] and passes
-            // it to our generated 'new' expression
-            var lambda = Expression.Lambda(typeof(CreateT<T>), newExp, args);
-
-            // Construct and return a CreateT<T>(params object[] args) body
-            return (CreateT<T>)lambda.Compile();
-        }
-
-        private static object GetDefault(Type type)
-        {
-            return type.IsValueType ? Activator.CreateInstance(type) : null;
-        }
+        #region Constructor Mapping Methods
 
         /// <summary>
         /// Create a new object of type <typeparamref name="TDestination"/> by passing the property values of 
@@ -404,6 +420,6 @@ namespace MAB.SimpleMapper
             return (TDestination)Activator.CreateInstance(typeof(TDestination), sourceProperties);
         }
 
-        #endregion Constructor Mapping
+        #endregion Constructor Mapping Methods
     }
 }
