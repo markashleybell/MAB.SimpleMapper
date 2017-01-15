@@ -201,4 +201,4 @@ reports
 
 # NuGet package output
 dist
-publish.cmd
+nuget-publish.cmd
