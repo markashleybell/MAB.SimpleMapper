@@ -983,5 +983,19 @@ namespace MAB.SimpleMapper.Test
             entity.ID.ShouldEqual(0);
             entity.Email.ShouldEqual("test@test.com");
         }
+
+        [Test]
+        public void Map_Object_To_Internal_Constructor()
+        {
+            var model = new {
+                ID = 100,
+                Email = "test@test.com"
+            };
+
+            var entity = model.MapToConstructor<EntityInternalConstructor>();
+
+            entity.ID.ShouldEqual(100);
+            entity.Email.ShouldEqual("test@test.com");
+        }
     }
 }

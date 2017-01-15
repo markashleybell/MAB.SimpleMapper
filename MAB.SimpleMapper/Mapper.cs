@@ -361,7 +361,7 @@ namespace MAB.SimpleMapper
             if(activator == null)
             { 
                 // Get all the constructors for the destination type
-                var constructors = destinationType.GetConstructors();
+                var constructors = destinationType.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
         
                 var constructorSignatures = new Dictionary<ConstructorInfo, IEnumerable<string>>();
 
